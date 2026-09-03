@@ -29,6 +29,24 @@
 - Manual time entry from timesheet.
 - WordPress coding standards: unique function and class names, nonces, sanitization and capabilities.
 
+## How this system was built
+
+Unlike the other three systems, this is a standalone, self-contained WordPress plugin rather than a phase that talks to an external platform. It follows a fairly conventional WordPress plugin structure: an activator handles setup, a set of includes classes each own one responsibility (time entries, clients, activities, holidays, leave, locked weeks, cron jobs, admin screens, public-facing shortcodes), and WP Cron handles the recurring automations (auto-close, digest, reminders, flag review). All data — time entries, clients, activities, PTO — lives in WordPress from the start, with no dependency on any outside service.
+
+## Advantages and disadvantages
+
+**Advantages**
+- Fully self-contained: no external platform to configure, authenticate against, or keep in sync — it works the moment it's activated.
+- Everything related to time tracking (clock in/out, breaks, timesheets, reports, payroll, PTO, CSV import/export) lives under one roof, which simplifies both usage and maintenance.
+- Follows WordPress coding conventions (unique prefixes, nonces, sanitization, capability checks), so it coexists safely with other plugins.
+- No network latency or external downtime can affect clock-in/out — the most time-sensitive action in the system.
+
+**Disadvantages**
+- Being self-contained also means it can't fall back on an external system — if something goes wrong, there's no secondary source of the data.
+- As more time-tracking features are added, the plugin itself has to grow, which can make it harder to manage than a system split across smaller connected pieces.
+- It's purpose-built for time tracking specifically, so unlike the portal/API-frontend/native-core trio, the same pattern can't be reused directly for a different kind of app.
+- Data import from other tools is manual (CSV), rather than an automatic, ongoing sync.
+
 ## Requirements
 
 - WordPress 5.8 or higher

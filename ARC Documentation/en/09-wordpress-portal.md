@@ -71,6 +71,23 @@ The frontend and admin pages load a responsive CSS framework via CDN:
 
 All templates (`portal-shortcode.php`) and helpers use utility classes. `assets/css/portal.css` keeps only state helpers that the CDN does not generate.
 
+## How this system was built
+
+This plugin was built as the first phase of a broader integration roadmap. Rather than rewriting the team's existing external web apps, it wraps them in a single WordPress entry point: a shortcode and a protected virtual route render a sidebar/dashboard shell, and each app opens inside an iframe (or a new tab when framing isn't possible). Access, branding and navigation are handled natively in WordPress, while all business logic and data stay untouched in the original external apps. An SSO bridge (HMAC-signed tokens) is layered on top so users don't have to log in twice.
+
+## Advantages and disadvantages
+
+**Advantages**
+- Fastest of the four systems to build and deploy — no existing app logic had to be rewritten.
+- Low risk: because the external apps were not modified, a portal failure does not affect the apps themselves.
+- Centralizes access, branding and permissions in one place, using WordPress's own roles and login.
+- SSO bridge removes the need to log into each app separately.
+
+**Disadvantages**
+- Still dependent on iframes for embedding, which some external tools block via `X-Frame-Options` or a strict content-security-policy, forcing a "new tab" fallback with a less integrated feel.
+- No native WordPress UI — the experience inside each iframe still looks and behaves like a separate app.
+- No data lives in WordPress itself; the portal has nothing to fall back on if the external platform is unreachable.
+
 ## Architecture
 
 ```

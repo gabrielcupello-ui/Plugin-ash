@@ -36,6 +36,23 @@ The [Project] WordPress API Frontend is the second step in the integration roadm
 
 The plugin loads a responsive CSS framework via CDN in frontend and wp-admin. Utility classes are used in all templates; `assets/css/api-frontend.css` only keeps message states and the spinner.
 
+## How this system was built
+
+This plugin is the second phase of the integration roadmap. It keeps the same external backend as the portal phase, but replaces the iframe with native WordPress shortcodes, forms and a REST proxy. Every request from a shortcode goes through a WordPress REST route, which is forwarded server-side to the external platform's web app; responses are cached briefly and retried automatically on network failure. This removes the need for iframes while the underlying data and business logic remain exactly where they were before.
+
+## Advantages and disadvantages
+
+**Advantages**
+- Native WordPress look and feel — forms, dashboards and tables render as part of the site instead of inside a framed window.
+- No data migration required: the external backend keeps functioning exactly as before.
+- Built-in caching and automatic retries make the connection to the external platform more resilient to slow responses or transient failures.
+- Incremental improvement over the portal phase without a full rewrite.
+
+**Disadvantages**
+- Every read or write still has to cross the network to the external platform, so overall responsiveness is bound by that platform's latency and uptime.
+- The 60-second cache can serve slightly stale data right after a change made elsewhere.
+- Each connected app needs its own API key and endpoint configuration, adding an operational/maintenance step whenever an app is added or changed.
+
 ## Architecture
 
 ```

@@ -30,6 +30,24 @@ The [Project] WordPress Native Core is the third step in the integration roadmap
 
 The plugin loads a responsive CSS framework via CDN. All templates and the admin page use utility classes. `assets/css/native.css` is empty (compatibility only) to avoid conflicts with CDN-generated classes.
 
+## How this system was built
+
+This plugin is the third phase of the integration roadmap. It moves the actual data — daily reports, HR applications, tasks — into custom MySQL tables created and managed by WordPress itself, instead of keeping it only in the external platform. A module registry lets each data type (reports, HR, tasks, etc.) be added or removed independently. Records still relevant to the external platform are queued and pushed out on a schedule (via WP Cron) with an HMAC signature, so the external side can stay in sync without WordPress having to wait on it for every read.
+
+## Advantages and disadvantages
+
+**Advantages**
+- WordPress owns the data directly, so reads are fast local database queries instead of network calls to another system.
+- The dashboard and modules keep working even if the external platform is temporarily unreachable, since sync is queued and retried later rather than required in real time.
+- The module registry makes it straightforward to add new data types without touching the core.
+- Detects and reuses the standalone time-clock plugin when present, avoiding duplicate functionality.
+
+**Disadvantages**
+- Introduces a second source of truth: WordPress and the external platform must be kept in sync, and the 5-minute queue means there is always a small window of eventual-consistency lag.
+- More moving parts to maintain overall — custom database tables, an activator/migration step, and a sync bridge, on top of the module logic itself.
+- Business logic that previously lived entirely in the external platform now has to be partly re-implemented on the WordPress side.
+- Took the longest of the four systems to build, since it does more than route or display data — it stores and manages it.
+
 ## Architecture
 
 ```
