@@ -1,9 +1,164 @@
-<?php/** * Main class for the ARC integrated portal. * * Follows the Intranet ARC plugin pattern: singleton, shortcode, assets, * settings page and partial templates. */if ( ! defined( 'ABSPATH' ) ) {	exit;}class Arc_Portal_App {	/**	 * Singleton instance.	 *	 * @var Arc_Portal_App|null	 */	private static $instance = null;	/**	 * Option key used in wp_options.	 *	 * @var string	 */	private $option_key = 'arc_portal_app_settings';	/**	 * Default settings.	 *	 * @var array	 */	private $defaults = array(		'logo_url'         => '',		'portal_title'     => 'Portal ARC',		'home_title'       => 'Welcome to the ARC Portal',		'home_description' => 'Select an app to get started. All team tools in one place.',		'allowed_roles'    => array( 'administrator', 'editor', 'subscriber' ),		'apps'             => array(			'time_clock' => array(				'label'       => 'Time Clock',				'url'         => '',				'icon'        => 'clock',				'enabled'     => true,				'description' => 'Clock in, out, and breaks.',				'target'      => 'iframe',			),			'eod_report' => array(				'label'       => 'EOD Report',				'url'         => '',				'icon'        => 'file-text',				'enabled'     => true,				'description' => 'Submit your daily work summary.',				'target'      => 'iframe',			),			'hr'         => array(				'label'       => 'Human Resources',				'url'         => '',				'icon'        => 'users',				'enabled'     => true,				'description' => 'Requests, interviews and talent management.',				'target'      => 'iframe',			),			'task_app'   => array(				'label'       => 'Task App',				'url'         => '',				'icon'        => 'check-square',				'enabled'     => true,				'description' => 'Projects, tasks and Kanban board (opens in a new tab because it requires a Google session).',				'target'      => 'new_tab',			),		),		'pass_email'       => true,		'container_class'  => 'arc-portal-container',		'login_redirect'   => '',		'logout_url'       => '',		'help_email'       => 'support@ashrivercollective.com',	);	/**	 * Plugin settings stored in the database.	 *	 * @var array	 */	private $settings = array();	/**	 * Get the singleton instance.	 *	 * @return Arc_Portal_App	 */	public static function instance() {		if ( null === self::$instance ) {			self::$instance = new self();		}		return self::$instance;	}	/**	 * Constructor.	 */	private function __construct() {		$this->settings = get_option( $this->option_key, $this->defaults );		$this->settings = $this->merge_settings( $this->settings );		add_action( 'init', array( $this, 'register_shortcode' ) );		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );		add_action( 'admin_init', array( $this, 'register_settings' ) );		add_action( 'admin_init', array( $this, 'maybe_import_apps_config' ) );		add_action( 'admin_init', array( $this, 'maybe_create_portal_page' ) );		add_action( 'admin_notices', array( $this, 'admin_notices' ) );		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );		add_action( 'template_redirect', array( $this, 'protect_portal_page' ) );		add_action( 'wp_ajax_arc_portal_render_app', array( $this, 'ajax_render_app' ) );		add_action( 'wp_ajax_nopriv_arc_portal_render_app', array( $this, 'ajax_render_app' ) );	}	/**	 * Merge stored settings with defaults so missing keys keep safe values.	 *	 * App defaults are pulled from the registry so new modules can be added	 * by third-party code without touching this file.	 *	 * @param array $stored Settings from wp_options.	 * @return array	 */	private function merge_settings( $stored ) {		$stored = is_array( $stored ) ? $stored : array();		$base   = $this->defaults;		// Pull app defaults from the registry (read-only baseline).		$base['apps'] = Arc_Portal_App_Registry::instance()->get_apps();		return wp_parse_args( $stored, $base );	}	/**	 * Get the final merged app list for the current user.	 *	 * Combines registry defaults + runtime registered apps + stored settings.	 *	 * @return array	 */	public function get_apps() {		$stored_apps = isset( $this->settings['apps'] ) ? $this->settings['apps'] : array();		return Arc_Portal_App_Registry::instance()->get_apps( $stored_apps );	}	/**	 * Return possible paths to the shared apps config file.	 *	 * @return array	 */	private function get_config_paths() {		return array(			ARC_PORTAL_DIR . 'arc-apps-config.json',			WP_CONTENT_DIR . '/uploads/arc-apps-config.json',			dirname( ARC_PORTAL_DIR ) . '/plantillas/arc-apps-config.json',		);	}	/**	 * Import URLs from arc-apps-config.json if found and newer than stored settings.	 */	public function maybe_import_apps_config() {		if ( ! current_user_can( 'manage_options' ) ) {			return;		}		// Manual trigger from settings page.		if ( isset( $_POST['arc_portal_import_config'] ) && check_admin_referer( 'arc_portal_import_config' ) ) {			$path = $this->find_config_file();			if ( $path ) {				$result = $this->import_apps_config( $path );				add_settings_error(					'arc_portal_messages',					'arc_portal_import',					$result ? __( 'Configuración importada correctamente.', 'arc-portal' ) : __( 'No se pudo importar la configuración.', 'arc-portal' ),					$result ? 'success' : 'error'				);			}
-else {				add_settings_error(					'arc_portal_messages',					'arc_portal_import',					__( 'arc-apps-config.json was not found.', 'arc-portal' ),					'error'				);			}		}		// Auto-import on activation if config exists.		$auto = get_option( 'arc_portal_app_auto_import_done', false );		if ( $auto ) {			return;		}		$path = $this->find_config_file();		if ( $path && $this->import_apps_config( $path ) ) {			update_option( 'arc_portal_app_auto_import_done', true );		}	}	/**	 * Find the first existing config file.	 *	 * @return string|false	 */	private function find_config_file() {		foreach ( $this->get_config_paths() as $path ) {			if ( file_exists( $path ) ) {				return $path;			}		}		return false;	}	/**	 * Import apps config from a JSON file.	 *	 * @param string $path Absolute path to JSON.	 * @return bool	 */	public function import_apps_config( $path ) {		if ( ! file_exists( $path ) ) {			return false;		}		$raw  = file_get_contents( $path );
-// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents		$data = json_decode( $raw, true );		if ( empty( $data['apps'] ) || ! is_array( $data['apps'] ) ) {			return false;		}		$settings = $this->settings;		$defaults = Arc_Portal_App_Registry::instance()->get_apps();		foreach ( $data['apps'] as $key => $app ) {			$key = sanitize_key( $key );			if ( empty( $key ) ) {				continue;			}			if ( ! isset( $settings['apps'][ $key ] ) ) {				$settings['apps'][ $key ] = isset( $defaults[ $key ] ) ? $defaults[ $key ] : array(					'label'       => $key,					'url'         => '',					'icon'        => 'grid',					'enabled'     => true,					'description' => '',					'target'      => 'iframe',				);			}			if ( ! empty( $app['endpoint'] ) ) {				$settings['apps'][ $key ]['url'] = esc_url_raw( $app['endpoint'] );			}			if ( ! empty( $app['portal_target'] ) ) {				$allowed_targets = array( 'iframe', 'new_tab', 'modal', 'ajax' );				$settings['apps'][ $key ]['target'] = in_array( $app['portal_target'], $allowed_targets, true ) ? $app['portal_target'] : 'iframe';			}			if ( ! empty( $app['portal_icon'] ) ) {				$settings['apps'][ $key ]['icon'] = sanitize_key( $app['portal_icon'] );			}			if ( ! empty( $app['name'] ) ) {				$settings['apps'][ $key ]['label'] = sanitize_text_field( $app['name'] );			}		}		update_option( $this->option_key, $settings );		$this->settings = $this->merge_settings( $settings );		return true;	}	/**	 * Get plugin settings.	 *	 * @return array	 */	public function get_settings() {		return $this->settings;	}	/**	 * Show friendly admin notices when setup is incomplete.	 */	public function admin_notices() {		if ( ! current_user_can( 'manage_options' ) ) {			return;		}		$screen = get_current_screen();		if ( $screen && $screen->id === 'toplevel_page_arc-portal-setup' ) {			return;		}		$configured = 0;		$total      = 0;		foreach ( $this->get_apps() as $app ) {			if ( empty( $app['enabled'] ) ) {				continue;			}			$total++;			if ( ! empty( $app['url'] ) ) {				$configured++;			}		}		if ( $total === 0 ) {			return;		}		if ( $configured === 0 ) {			echo '<div class="notice notice-warning is-dismissible"><p>';			echo '<strong>' . esc_html__( 'Portal ARC', 'arc-portal' ) . ':</strong> ';			esc_html_e( 'Ninguna app está configurada. Ve a ', 'arc-portal' );			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-portal-setup' ) ) . '">' . esc_html__( 'Configuración rápida', 'arc-portal' ) . '</a>';			echo '</p></div>';		}
-elseif ( $configured < $total ) {			echo '<div class="notice notice-info is-dismissible"><p>';			echo '<strong>' . esc_html__( 'Portal ARC', 'arc-portal' ) . ':</strong> ';			printf( esc_html__( 'You have %1$d of %2$d apps configured. ', 'arc-portal' ), absint( $configured ), absint( $total ) );			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-portal-setup' ) ) . '">' . esc_html__( 'Review configuration', 'arc-portal' ) . '</a>';			echo '</p></div>';		}	}	/**	 * Create a portal page on first activation if it does not exist.	 */	public function maybe_create_portal_page() {		if ( ! current_user_can( 'manage_options' ) ) {			return;		}		$created = get_option( 'arc_portal_app_page_created', false );		if ( $created ) {			return;		}		$existing = get_page_by_path( 'portal-arc', OBJECT, 'page' );		if ( $existing ) {			update_option( 'arc_portal_app_page_created', true );			return;		}		$page_id = wp_insert_post(			array(				'post_title'   => __( 'Portal ARC', 'arc-portal' ),				'post_name'    => 'portal-arc',				'post_content' => '[arc_portal]',				'post_status'  => 'publish',				'post_type'    => 'page',			)		);		if ( ! is_wp_error( $page_id ) ) {			update_option( 'arc_portal_app_page_created', true );		}	}	/**	 * Return status text and color for an app URL.	 *	 * @param string $url App URL.	 * @return array	 */	public function get_app_status( $url ) {		if ( empty( $url ) ) {			return array( 'text' => __( 'Not configured', 'arc-portal' ), 'color' => 'red' );		}		if ( false === wp_http_validate_url( $url ) ) {			return array( 'text' => __( 'Invalid URL', 'arc-portal' ), 'color' => 'orange' );		}		return array( 'text' => __( 'OK', 'arc-portal' ), 'color' => 'green' );	}	/**	 * Register the portal shortcode.	 */	public function register_shortcode() {		add_shortcode( 'arc_portal', array( $this, 'render_portal' ) );	}	/**	 * Enqueue front-end assets only when the shortcode is present.	 */	public function enqueue_assets() {		global $post;		$load = false;		if ( is_singular() && isset( $post->post_content ) && has_shortcode( $post->post_content, 'arc_portal' ) ) {			$load = true;		}		if ( is_page() && get_query_var( 'arc_portal_app_page' ) ) {			$load = true;		}		if ( apply_filters( 'arc_portal_force_assets', false ) ) {			$load = true;		}		if ( ! $load ) {			return;		}		// Tailwind CSS v4 browser CDN (scan + compile on client).		wp_enqueue_script(			'tailwind-cdn',			'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',			array(),			null,			false		);		wp_enqueue_style(			'arc-portal-css',			ARC_PORTAL_URL . 'assets/css/portal.css',			array(),			ARC_PORTAL_VERSION		);		wp_enqueue_script(			'arc-portal-js',			ARC_PORTAL_URL . 'assets/js/portal.js',			array(),			ARC_PORTAL_VERSION,			true		);		$user = wp_get_current_user();		wp_localize_script(			'arc-portal-js',			'arcPortalData',			array(				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),				'userEmail' => $user->exists() ? $user->user_email : '',				'userName'  => $user->exists() ? $user->display_name : '',				'passEmail' => ! empty( $this->settings['pass_email'] ),				'apps'      => $this->get_apps(),				'homeUrl'   => home_url(),				'logoutUrl' => $this->settings['logout_url'] ? $this->settings['logout_url'] : wp_logout_url( home_url() ),			)		);	}	/**	 * Enqueue admin assets on ARC Portal admin pages.	 *	 * @param string $hook Current admin page hook.	 */	public function enqueue_admin_assets( $hook ) {		if ( strpos( $hook, 'arc-portal' ) === false ) {			return;		}		wp_enqueue_script(			'tailwind-cdn',			'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',			array(),			null,			false		);	}	/**	 * Render the portal shortcode.	 *	 * @param array  $atts Shortcode attributes.	 * @param string $content Shortcode content.	 * @return string	 */	public function render_portal( $atts = array(), $content = '' ) {		if ( ! $this->can_access() ) {			$login_url = $this->settings['login_redirect'] ? $this->settings['login_redirect'] : wp_login_url( get_permalink() );			return '<div class="max-w-md mx-auto my-10 p-8 bg-slate-800 border border-slate-700 text-slate-100 rounded-2xl text-center"><p class="mb-4">' . esc_html__( 'Debes iniciar sesión para acceder al portal.', 'arc-portal' ) . '</p><a class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition no-underline" href="' . esc_url( $login_url ) . '">' . esc_html__( 'Iniciar sesión', 'arc-portal' ) . '</a></div>';		}		if ( ! $this->has_allowed_role() ) {			return '<div class="max-w-md mx-auto my-10 p-8 bg-slate-800 border border-slate-700 text-slate-100 rounded-2xl text-center"><p>' . esc_html__( 'No tienes permisos para ver este portal.', 'arc-portal' ) . '</p></div>';		}		$apps = array_filter(			$this->get_apps(),			function ( $app ) {				return ! empty( $app['enabled'] ) && ! empty( $app['url'] );			}		);		/**		 * Fires before the portal is rendered.		 *		 * @param array $apps  Visible apps for the current user.		 * @param array $settings Plugin settings.		 */		do_action( 'arc_portal_before_render', $apps, $this->settings );		if ( empty( $apps ) ) {			return '<div class="max-w-md mx-auto my-10 p-8 bg-slate-800 border border-slate-700 text-slate-100 rounded-2xl text-center"><p>' . esc_html__( 'El portal no tiene apps configuradas todavía. Configúralas en Ajustes > ARC Portal.', 'arc-portal' ) . '</p></div>';		}		$user = wp_get_current_user();		ob_start();		include ARC_PORTAL_DIR . 'templates/portal-shortcode.php';		return ob_get_clean();	}	/**	 * Protect the virtual portal page from guest access.	 */	public function protect_portal_page() {		if ( ! get_query_var( 'arc_portal_app_page' ) ) {			return;		}		if ( ! is_user_logged_in() ) {			$login_url = $this->settings['login_redirect'] ? $this->settings['login_redirect'] : wp_login_url( home_url( '/portal/' ) );			wp_safe_redirect( $login_url );			exit;		}		if ( ! $this->has_allowed_role() ) {			wp_die( esc_html__( 'No tienes permisos para ver este portal.', 'arc-portal' ), 403 );		}	}	/**	 * Check if the current visitor can access the portal.	 *	 * @return bool	 */	private function can_access() {		if ( ! is_user_logged_in() ) {			return false;		}		return $this->has_allowed_role();	}	/**	 * Check if the current user has one of the allowed roles.	 *	 * @return bool	 */	private function has_allowed_role() {		$user = wp_get_current_user();		if ( ! $user->exists() ) {			return false;		}		// Admins always have access.		if ( user_can( $user, 'manage_options' ) ) {			return true;		}		$allowed = array_map( 'sanitize_key', (array) $this->settings['allowed_roles'] );		if ( empty( $allowed ) ) {			return false;		}		$roles = (array) $user->roles;		return (bool) array_intersect( $allowed, $roles );	}	/**	 * Add admin menus.	 */	public function add_admin_menu() {		add_menu_page(			__( 'ARC Portal', 'arc-portal' ),			__( 'ARC Portal', 'arc-portal' ),			'manage_options',			'arc-portal-setup',			array( $this, 'render_setup_page' ),			'dashicons-admin-site-alt3',			30		);		add_submenu_page(			'arc-portal-setup',			__( 'Configuración rápida', 'arc-portal' ),			__( 'Configuración rápida', 'arc-portal' ),			'manage_options',			'arc-portal-setup',			array( $this, 'render_setup_page' )		);		add_submenu_page(			'arc-portal-setup',			__( 'Ajustes avanzados', 'arc-portal' ),			__( 'Ajustes avanzados', 'arc-portal' ),			'manage_options',			'arc-portal-advanced',			array( $this, 'render_settings_page' )		);	}	/**	 * Register settings.	 */	public function register_settings() {		register_setting( 'arc_portal_settings_group', $this->option_key, array( $this, 'sanitize_settings' ) );		register_setting( 'arc_portal_settings_group', 'arc_portal_app_gas_auth_url', 'esc_url_raw' );		register_setting( 'arc_portal_settings_group', 'arc_portal_app_gas_api_secret', 'sanitize_text_field' );	}	/**	 * Sanitize settings before saving.	 *	 * @param array $input Raw settings.	 * @return array	 */	public function sanitize_settings( $input ) {		$output = $this->defaults;		if ( isset( $input['logo_url'] ) ) {			$output['logo_url'] = esc_url_raw( $input['logo_url'] );		}		if ( isset( $input['portal_title'] ) ) {			$output['portal_title'] = sanitize_text_field( $input['portal_title'] );		}		if ( isset( $input['home_title'] ) ) {			$output['home_title'] = sanitize_text_field( $input['home_title'] );		}		if ( isset( $input['home_description'] ) ) {			$output['home_description'] = sanitize_textarea_field( $input['home_description'] );		}		if ( isset( $input['help_email'] ) ) {			$output['help_email'] = sanitize_email( $input['help_email'] );		}		if ( isset( $input['allowed_roles'] ) && is_array( $input['allowed_roles'] ) ) {			$output['allowed_roles'] = array_map( 'sanitize_key', $input['allowed_roles'] );		}		if ( isset( $input['apps'] ) && is_array( $input['apps'] ) ) {			foreach ( $input['apps'] as $key => $app ) {				$key = sanitize_key( $key );				if ( empty( $key ) ) {					continue;				}				$base = isset( $output['apps'][ $key ] ) ? $output['apps'][ $key ] : array(					'label'       => $key,					'url'         => '',					'icon'        => 'grid',					'enabled'     => true,					'description' => '',					'target'      => 'iframe',				);				$output['apps'][ $key ]['label']       = sanitize_text_field( $app['label'] ?? $base['label'] );				$output['apps'][ $key ]['url']         = esc_url_raw( $app['url'] ?? $base['url'] );				$output['apps'][ $key ]['icon']        = sanitize_key( $app['icon'] ?? $base['icon'] );				$output['apps'][ $key ]['enabled']     = ! empty( $app['enabled'] );				$output['apps'][ $key ]['description']  = ! empty( $app['description'] ) ? sanitize_text_field( $app['description'] ) : '';				$allowed_targets = array( 'iframe', 'new_tab', 'modal', 'ajax' );				$output['apps'][ $key ]['target']      = in_array( $app['target'], $allowed_targets, true ) ? $app['target'] : 'iframe';				if ( isset( $app['order'] ) ) {					$output['apps'][ $key ]['order'] = (int) $app['order'];				}			}		}		$output['pass_email']      = ! empty( $input['pass_email'] );		$output['login_redirect']  = ! empty( $input['login_redirect'] ) ? esc_url_raw( $input['login_redirect'] ) : '';		$output['logout_url']     = ! empty( $input['logout_url'] ) ? esc_url_raw( $input['logout_url'] ) : '';		return $output;	}	/**	 * Render settings page.	 */	public function render_settings_page() {		$settings = $this->settings;		$roles    = wp_roles()->get_names();		?>		<div class="wrap bg-white p-6 font-sans">			<h1 class="text-3xl font-bold text-gray-900 mb-2"><?php echo esc_html( get_admin_page_title() );
+<?php/** * Main class for the ARC integrated portal. * * Follows the Intranet ARC plugin pattern: singleton, shortcode, assets, * settings page and partial templates. */if ( ! defined( 'ABSPATH' ) ) {	exit;}class Arc_Portal_App {	/**	 * Singleton instance.	 *	 * @var Arc_Portal_App|null	 */	private static $instance = null;
+	/**	 * Option key used in wp_options.	 *	 * @var string	 */	private $option_key = 'arc_portal_app_settings';
+	/**	 * Default settings.	 *	 * @var array	 */	private $defaults = array(		'logo_url'         => '',		'portal_title'     => 'Portal ARC',		'home_title'       => 'Welcome to the ARC Portal',		'home_description' => 'Select an app to get started. All team tools in one place.',		'allowed_roles'    => array( 'administrator', 'editor', 'subscriber' ),		'apps'             => array(			'time_clock' => array(				'label'       => 'Time Clock',				'url'         => '',				'icon'        => 'clock',				'enabled'     => true,				'description' => 'Clock in, out, and breaks.',				'target'      => 'iframe',			),			'eod_report' => array(				'label'       => 'EOD Report',				'url'         => '',				'icon'        => 'file-text',				'enabled'     => true,				'description' => 'Submit your daily work summary.',				'target'      => 'iframe',			),			'hr'         => array(				'label'       => 'Human Resources',				'url'         => '',				'icon'        => 'users',				'enabled'     => true,				'description' => 'Requests, interviews and talent management.',				'target'      => 'iframe',			),			'task_app'   => array(				'label'       => 'Task App',				'url'         => '',				'icon'        => 'check-square',				'enabled'     => true,				'description' => 'Projects, tasks and Kanban board (opens in a new tab because it requires a Google session).',				'target'      => 'new_tab',			),		),		'pass_email'       => true,		'container_class'  => 'arc-portal-container',		'login_redirect'   => '',		'logout_url'       => '',		'help_email'       => 'support@ashrivercollective.com',	);
+	/**	 * Plugin settings stored in the database.	 *	 * @var array	 */	private $settings = array();
+	/**	 * Get the singleton instance.	 *	 * @return Arc_Portal_App	 */	public static function instance() {		if ( null === self::$instance ) {			self::$instance = new self();
+		}		return self::$instance;
+	}	/**	 * Constructor.	 */	private function __construct() {		$this->settings = get_option( $this->option_key, $this->defaults );
+		$this->settings = $this->merge_settings( $this->settings );
+		add_action( 'init', array( $this, 'register_shortcode' ) );
+		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'maybe_import_apps_config' ) );
+		add_action( 'admin_init', array( $this, 'maybe_create_portal_page' ) );
+		add_action( 'admin_notices', array( $this, 'admin_notices' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'template_redirect', array( $this, 'protect_portal_page' ) );
+		add_action( 'wp_ajax_arc_portal_render_app', array( $this, 'ajax_render_app' ) );
+		add_action( 'wp_ajax_nopriv_arc_portal_render_app', array( $this, 'ajax_render_app' ) );
+	}	/**	 * Merge stored settings with defaults so missing keys keep safe values.	 *	 * App defaults are pulled from the registry so new modules can be added	 * by third-party code without touching this file.	 *	 * @param array $stored Settings from wp_options.	 * @return array	 */	private function merge_settings( $stored ) {		$stored = is_array( $stored ) ? $stored : array();
+		$base   = $this->defaults;
+		// Pull app defaults from the registry (read-only baseline).		$base['apps'] = Arc_Portal_App_Registry::instance()->get_apps();
+		return wp_parse_args( $stored, $base );
+	}	/**	 * Get the final merged app list for the current user.	 *	 * Combines registry defaults + runtime registered apps + stored settings.	 *	 * @return array	 */	public function get_apps() {		$stored_apps = isset( $this->settings['apps'] ) ? $this->settings['apps'] : array();
+		return Arc_Portal_App_Registry::instance()->get_apps( $stored_apps );
+	}	/**	 * Return possible paths to the shared apps config file.	 *	 * @return array	 */	private function get_config_paths() {		return array(			ARC_PORTAL_DIR . 'arc-apps-config.json',			WP_CONTENT_DIR . '/uploads/arc-apps-config.json',			dirname( ARC_PORTAL_DIR ) . '/plantillas/arc-apps-config.json',		);
+	}	/**	 * Import URLs from arc-apps-config.json if found and newer than stored settings.	 */	public function maybe_import_apps_config() {		if ( ! current_user_can( 'manage_options' ) ) {			return;
+		}		// Manual trigger from settings page.		if ( isset( $_POST['arc_portal_import_config'] ) && check_admin_referer( 'arc_portal_import_config' ) ) {			$path = $this->find_config_file();
+			if ( $path ) {				$result = $this->import_apps_config( $path );
+				add_settings_error(					'arc_portal_messages',					'arc_portal_import',					$result ? __( 'Configuration imported successfully.', 'arc-portal' ) : __( 'Could not import the configuration.', 'arc-portal' ),					$result ? 'success' : 'error'				);
+			}
+else {				add_settings_error(					'arc_portal_messages',					'arc_portal_import',					__( 'arc-apps-config.json was not found.', 'arc-portal' ),					'error'				);
+			}		}		// Auto-import on activation if config exists.		$auto = get_option( 'arc_portal_app_auto_import_done', false );
+		if ( $auto ) {			return;
+		}		$path = $this->find_config_file();
+		if ( $path && $this->import_apps_config( $path ) ) {			update_option( 'arc_portal_app_auto_import_done', true );
+		}	}	/**	 * Find the first existing config file.	 *	 * @return string|false	 */	private function find_config_file() {		foreach ( $this->get_config_paths() as $path ) {			if ( file_exists( $path ) ) {				return $path;
+			}		}		return false;
+	}	/**	 * Import apps config from a JSON file.	 *	 * @param string $path Absolute path to JSON.	 * @return bool	 */	public function import_apps_config( $path ) {		if ( ! file_exists( $path ) ) {			return false;
+		}		$raw  = file_get_contents( $path );
+// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents		$data = json_decode( $raw, true );
+		if ( empty( $data['apps'] ) || ! is_array( $data['apps'] ) ) {			return false;
+		}		$settings = $this->settings;
+		$defaults = Arc_Portal_App_Registry::instance()->get_apps();
+		foreach ( $data['apps'] as $key => $app ) {			$key = sanitize_key( $key );
+			if ( empty( $key ) ) {				continue;
+			}			if ( ! isset( $settings['apps'][ $key ] ) ) {				$settings['apps'][ $key ] = isset( $defaults[ $key ] ) ? $defaults[ $key ] : array(					'label'       => $key,					'url'         => '',					'icon'        => 'grid',					'enabled'     => true,					'description' => '',					'target'      => 'iframe',				);
+			}			if ( ! empty( $app['endpoint'] ) ) {				$settings['apps'][ $key ]['url'] = esc_url_raw( $app['endpoint'] );
+			}			if ( ! empty( $app['portal_target'] ) ) {				$allowed_targets = array( 'iframe', 'new_tab', 'modal', 'ajax' );
+				$settings['apps'][ $key ]['target'] = in_array( $app['portal_target'], $allowed_targets, true ) ? $app['portal_target'] : 'iframe';
+			}			if ( ! empty( $app['portal_icon'] ) ) {				$settings['apps'][ $key ]['icon'] = sanitize_key( $app['portal_icon'] );
+			}			if ( ! empty( $app['name'] ) ) {				$settings['apps'][ $key ]['label'] = sanitize_text_field( $app['name'] );
+			}		}		update_option( $this->option_key, $settings );
+		$this->settings = $this->merge_settings( $settings );
+		return true;
+	}	/**	 * Get plugin settings.	 *	 * @return array	 */	public function get_settings() {		return $this->settings;
+	}	/**	 * Show friendly admin notices when setup is incomplete.	 */	public function admin_notices() {		if ( ! current_user_can( 'manage_options' ) ) {			return;
+		}		$screen = get_current_screen();
+		if ( $screen && $screen->id === 'toplevel_page_arc-portal-setup' ) {			return;
+		}		$configured = 0;
+		$total      = 0;
+		foreach ( $this->get_apps() as $app ) {			if ( empty( $app['enabled'] ) ) {				continue;
+			}			$total++;
+			if ( ! empty( $app['url'] ) ) {				$configured++;
+			}		}		if ( $total === 0 ) {			return;
+		}		if ( $configured === 0 ) {			echo '<div class="notice notice-warning is-dismissible"><p>';
+			echo '<strong>' . esc_html__( 'Portal ARC', 'arc-portal' ) . ':</strong> ';
+			esc_html_e( 'No app is configured. Go to ', 'arc-portal' );
+			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-portal-setup' ) ) . '">' . esc_html__( 'Quick setup', 'arc-portal' ) . '</a>';
+			echo '</p></div>';
+		}
+elseif ( $configured < $total ) {			echo '<div class="notice notice-info is-dismissible"><p>';
+			echo '<strong>' . esc_html__( 'Portal ARC', 'arc-portal' ) . ':</strong> ';
+			printf( esc_html__( 'You have %1$d of %2$d apps configured. ', 'arc-portal' ), absint( $configured ), absint( $total ) );
+			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-portal-setup' ) ) . '">' . esc_html__( 'Review configuration', 'arc-portal' ) . '</a>';
+			echo '</p></div>';
+		}	}	/**	 * Create a portal page on first activation if it does not exist.	 */	public function maybe_create_portal_page() {		if ( ! current_user_can( 'manage_options' ) ) {			return;
+		}		$created = get_option( 'arc_portal_app_page_created', false );
+		if ( $created ) {			return;
+		}		$existing = get_page_by_path( 'portal-arc', OBJECT, 'page' );
+		if ( $existing ) {			update_option( 'arc_portal_app_page_created', true );
+			return;
+		}		$page_id = wp_insert_post(			array(				'post_title'   => __( 'Portal ARC', 'arc-portal' ),				'post_name'    => 'portal-arc',				'post_content' => '[arc_portal]',				'post_status'  => 'publish',				'post_type'    => 'page',			)		);
+		if ( ! is_wp_error( $page_id ) ) {			update_option( 'arc_portal_app_page_created', true );
+		}	}	/**	 * Return status text and color for an app URL.	 *	 * @param string $url App URL.	 * @return array	 */	public function get_app_status( $url ) {		if ( empty( $url ) ) {			return array( 'text' => __( 'Not configured', 'arc-portal' ), 'color' => 'red' );
+		}		if ( false === wp_http_validate_url( $url ) ) {			return array( 'text' => __( 'Invalid URL', 'arc-portal' ), 'color' => 'orange' );
+		}		return array( 'text' => __( 'OK', 'arc-portal' ), 'color' => 'green' );
+	}	/**	 * Register the portal shortcode.	 */	public function register_shortcode() {		add_shortcode( 'arc_portal', array( $this, 'render_portal' ) );
+	}	/**	 * Enqueue front-end assets only when the shortcode is present.	 */	public function enqueue_assets() {		global $post;
+		$load = false;
+		if ( is_singular() && isset( $post->post_content ) && has_shortcode( $post->post_content, 'arc_portal' ) ) {			$load = true;
+		}		if ( is_page() && get_query_var( 'arc_portal_app_page' ) ) {			$load = true;
+		}		if ( apply_filters( 'arc_portal_force_assets', false ) ) {			$load = true;
+		}		if ( ! $load ) {			return;
+		}		// Tailwind CSS v4 browser CDN (scan + compile on client).		wp_enqueue_script(			'tailwind-cdn',			'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',			array(),			null,			false		);
+		wp_enqueue_style(			'arc-portal-css',			ARC_PORTAL_URL . 'assets/css/portal.css',			array(),			ARC_PORTAL_VERSION		);
+		wp_enqueue_script(			'arc-portal-js',			ARC_PORTAL_URL . 'assets/js/portal.js',			array(),			ARC_PORTAL_VERSION,			true		);
+		$user = wp_get_current_user();
+		wp_localize_script(			'arc-portal-js',			'arcPortalData',			array(				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),				'userEmail' => $user->exists() ? $user->user_email : '',				'userName'  => $user->exists() ? $user->display_name : '',				'passEmail' => ! empty( $this->settings['pass_email'] ),				'apps'      => $this->get_apps(),				'homeUrl'   => home_url(),				'logoutUrl' => $this->settings['logout_url'] ? $this->settings['logout_url'] : wp_logout_url( home_url() ),			)		);
+	}	/**	 * Enqueue admin assets on ARC Portal admin pages.	 *	 * @param string $hook Current admin page hook.	 */	public function enqueue_admin_assets( $hook ) {		if ( strpos( $hook, 'arc-portal' ) === false ) {			return;
+		}		wp_enqueue_script(			'tailwind-cdn',			'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',			array(),			null,			false		);
+	}	/**	 * Render the portal shortcode.	 *	 * @param array  $atts Shortcode attributes.	 * @param string $content Shortcode content.	 * @return string	 */	public function render_portal( $atts = array(), $content = '' ) {		if ( ! $this->can_access() ) {			$login_url = $this->settings['login_redirect'] ? $this->settings['login_redirect'] : wp_login_url( get_permalink() );
+			return '<div class="max-w-md mx-auto my-10 p-8 bg-slate-800 border border-slate-700 text-slate-100 rounded-2xl text-center"><p class="mb-4">' . esc_html__( 'You must log in to access the portal.', 'arc-portal' ) . '</p><a class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition no-underline" href="' . esc_url( $login_url ) . '">' . esc_html__( 'Log in', 'arc-portal' ) . '</a></div>';
+		}		if ( ! $this->has_allowed_role() ) {			return '<div class="max-w-md mx-auto my-10 p-8 bg-slate-800 border border-slate-700 text-slate-100 rounded-2xl text-center"><p>' . esc_html__( 'You do not have permission to view this portal.', 'arc-portal' ) . '</p></div>';
+		}		$apps = array_filter(			$this->get_apps(),			function ( $app ) {				return ! empty( $app['enabled'] ) && ! empty( $app['url'] );
+			}		);
+		/**		 * Fires before the portal is rendered.		 *		 * @param array $apps  Visible apps for the current user.		 * @param array $settings Plugin settings.		 */		do_action( 'arc_portal_before_render', $apps, $this->settings );
+		if ( empty( $apps ) ) {			return '<div class="max-w-md mx-auto my-10 p-8 bg-slate-800 border border-slate-700 text-slate-100 rounded-2xl text-center"><p>' . esc_html__( 'The portal has no apps configured yet. Configure them in Settings > ARC Portal.', 'arc-portal' ) . '</p></div>';
+		}		$user = wp_get_current_user();
+		ob_start();
+		include ARC_PORTAL_DIR . 'templates/portal-shortcode.php';
+		return ob_get_clean();
+	}	/**	 * Protect the virtual portal page from guest access.	 */	public function protect_portal_page() {		if ( ! get_query_var( 'arc_portal_app_page' ) ) {			return;
+		}		if ( ! is_user_logged_in() ) {			$login_url = $this->settings['login_redirect'] ? $this->settings['login_redirect'] : wp_login_url( home_url( '/portal/' ) );
+			wp_safe_redirect( $login_url );
+			exit;
+		}		if ( ! $this->has_allowed_role() ) {			wp_die( esc_html__( 'You do not have permission to view this portal.', 'arc-portal' ), 403 );
+		}	}	/**	 * Check if the current visitor can access the portal.	 *	 * @return bool	 */	private function can_access() {		if ( ! is_user_logged_in() ) {			return false;
+		}		return $this->has_allowed_role();
+	}	/**	 * Check if the current user has one of the allowed roles.	 *	 * @return bool	 */	private function has_allowed_role() {		$user = wp_get_current_user();
+		if ( ! $user->exists() ) {			return false;
+		}		// Admins always have access.		if ( user_can( $user, 'manage_options' ) ) {			return true;
+		}		$allowed = array_map( 'sanitize_key', (array) $this->settings['allowed_roles'] );
+		if ( empty( $allowed ) ) {			return false;
+		}		$roles = (array) $user->roles;
+		return (bool) array_intersect( $allowed, $roles );
+	}	/**	 * Add admin menus.	 */	public function add_admin_menu() {		add_menu_page(			__( 'ARC Portal', 'arc-portal' ),			__( 'ARC Portal', 'arc-portal' ),			'manage_options',			'arc-portal-setup',			array( $this, 'render_setup_page' ),			'dashicons-admin-site-alt3',			30		);
+		add_submenu_page(			'arc-portal-setup',			__( 'Quick setup', 'arc-portal' ),			__( 'Quick setup', 'arc-portal' ),			'manage_options',			'arc-portal-setup',			array( $this, 'render_setup_page' )		);
+		add_submenu_page(			'arc-portal-setup',			__( 'Advanced settings', 'arc-portal' ),			__( 'Advanced settings', 'arc-portal' ),			'manage_options',			'arc-portal-advanced',			array( $this, 'render_settings_page' )		);
+	}	/**	 * Register settings.	 */	public function register_settings() {		register_setting( 'arc_portal_settings_group', $this->option_key, array( $this, 'sanitize_settings' ) );
+		register_setting( 'arc_portal_settings_group', 'arc_portal_app_gas_auth_url', 'esc_url_raw' );
+		register_setting( 'arc_portal_settings_group', 'arc_portal_app_gas_api_secret', 'sanitize_text_field' );
+	}	/**	 * Sanitize settings before saving.	 *	 * @param array $input Raw settings.	 * @return array	 */	public function sanitize_settings( $input ) {		$output = $this->defaults;
+		if ( isset( $input['logo_url'] ) ) {			$output['logo_url'] = esc_url_raw( $input['logo_url'] );
+		}		if ( isset( $input['portal_title'] ) ) {			$output['portal_title'] = sanitize_text_field( $input['portal_title'] );
+		}		if ( isset( $input['home_title'] ) ) {			$output['home_title'] = sanitize_text_field( $input['home_title'] );
+		}		if ( isset( $input['home_description'] ) ) {			$output['home_description'] = sanitize_textarea_field( $input['home_description'] );
+		}		if ( isset( $input['help_email'] ) ) {			$output['help_email'] = sanitize_email( $input['help_email'] );
+		}		if ( isset( $input['allowed_roles'] ) && is_array( $input['allowed_roles'] ) ) {			$output['allowed_roles'] = array_map( 'sanitize_key', $input['allowed_roles'] );
+		}		if ( isset( $input['apps'] ) && is_array( $input['apps'] ) ) {			foreach ( $input['apps'] as $key => $app ) {				$key = sanitize_key( $key );
+				if ( empty( $key ) ) {					continue;
+				}				$base = isset( $output['apps'][ $key ] ) ? $output['apps'][ $key ] : array(					'label'       => $key,					'url'         => '',					'icon'        => 'grid',					'enabled'     => true,					'description' => '',					'target'      => 'iframe',				);
+				$output['apps'][ $key ]['label']       = sanitize_text_field( $app['label'] ?? $base['label'] );
+				$output['apps'][ $key ]['url']         = esc_url_raw( $app['url'] ?? $base['url'] );
+				$output['apps'][ $key ]['icon']        = sanitize_key( $app['icon'] ?? $base['icon'] );
+				$output['apps'][ $key ]['enabled']     = ! empty( $app['enabled'] );
+				$output['apps'][ $key ]['description']  = ! empty( $app['description'] ) ? sanitize_text_field( $app['description'] ) : '';
+				$allowed_targets = array( 'iframe', 'new_tab', 'modal', 'ajax' );
+				$output['apps'][ $key ]['target']      = in_array( $app['target'], $allowed_targets, true ) ? $app['target'] : 'iframe';
+				if ( isset( $app['order'] ) ) {					$output['apps'][ $key ]['order'] = (int) $app['order'];
+				}			}		}		$output['pass_email']      = ! empty( $input['pass_email'] );
+		$output['login_redirect']  = ! empty( $input['login_redirect'] ) ? esc_url_raw( $input['login_redirect'] ) : '';
+		$output['logout_url']     = ! empty( $input['logout_url'] ) ? esc_url_raw( $input['logout_url'] ) : '';
+		return $output;
+	}	/**	 * Render settings page.	 */	public function render_settings_page() {		$settings = $this->settings;
+		$roles    = wp_roles()->get_names();
+		?>		<div class="wrap bg-white p-6 font-sans">			<h1 class="text-3xl font-bold text-gray-900 mb-2"><?php echo esc_html( get_admin_page_title() );
 ?></h1>			<?php settings_errors( 'arc_portal_messages' );
-?>			<form method="post" action="options.php">				<?php				settings_fields( 'arc_portal_settings_group' );				do_settings_sections( 'arc-portal' );				?>				<table class="form-table">					<tr>						<th scope="row"><?php esc_html_e( 'Portal title', 'arc-portal' );
+?>			<form method="post" action="options.php">				<?php				settings_fields( 'arc_portal_settings_group' );
+				do_settings_sections( 'arc-portal' );
+				?>				<table class="form-table">					<tr>						<th scope="row"><?php esc_html_e( 'Portal title', 'arc-portal' );
 ?></th>						<td>							<input type="text" name="<?php echo esc_attr( $this->option_key );
 ?>[portal_title]" value="<?php echo esc_attr( $settings['portal_title'] );
 ?>" class="regular-text">						</td>					</tr>					<tr>						<th scope="row"><?php esc_html_e( 'Welcome title', 'arc-portal' );
@@ -45,7 +200,9 @@ elseif ( $configured < $total ) {			echo '<div class="notice notice-info is-dism
 ?></th>										<th><?php esc_html_e( 'Web App URL', 'arc-portal' );
 ?></th>										<th><?php esc_html_e( 'Status', 'arc-portal' );
 ?></th>										<th><?php esc_html_e( 'Target', 'arc-portal' );
-?></th>									</tr>								</thead>								<tbody>									<?php foreach ( $this->get_apps() as $key => $app ) : ?>									<?php									$status = $this->get_app_status( $app['url'] );									$status_dot = 'green' === $status['color'] ? '🟢' : ( 'orange' === $status['color'] ? '🟠' : '🔴' );									?>									<tr>										<td><input type="checkbox" name="<?php echo esc_attr( $this->option_key );
+?></th>									</tr>								</thead>								<tbody>									<?php foreach ( $this->get_apps() as $key => $app ) : ?>									<?php									$status = $this->get_app_status( $app['url'] );
+									$status_dot = 'green' === $status['color'] ? '🟢' : ( 'orange' === $status['color'] ? '🟠' : '🔴' );
+									?>									<tr>										<td><input type="checkbox" name="<?php echo esc_attr( $this->option_key );
 ?>[apps][<?php echo esc_attr( $key );
 ?>][enabled]" value="1" <?php checked( ! empty( $app['enabled'] ) );
 ?>></td>										<td><?php echo esc_html( $key );
@@ -75,15 +232,35 @@ elseif ( $configured < $total ) {			echo '<div class="notice notice-info is-dism
 ?>			</form>			<hr>			<form method="post" action="">				<?php wp_nonce_field( 'arc_portal_import_config' );
 ?>				<h2><?php esc_html_e( 'Auto-configuration from arc-apps-config.json', 'arc-portal' );
 ?></h2>				<p class="description">					<?php esc_html_e( 'Import deployment URLs from the file generated by update-arc-urls.js. The plugin looks for arc-apps-config.json in its folder, wp-content/uploads/, or next to plantillas/.', 'arc-portal' );
-?>				</p>				<?php				$config_path = $this->find_config_file();				if ( $config_path ) {					echo '<p>' . esc_html__( 'File found:', 'arc-portal' ) . ' <code>' . esc_html( $config_path ) . '</code></p>';				}				?>				<input type="hidden" name="arc_portal_import_config" value="1">				<?php submit_button( __( 'Import URLs now', 'arc-portal' ), 'secondary', 'arc_portal_import_config_submit' );
-?>			</form>		</div>		<?php	}	/**	 * Render the quick setup wizard page.	 */	public function render_setup_page() {		if ( ! current_user_can( 'manage_options' ) ) {			wp_die( esc_html__( 'You do not have permission.', 'arc-portal' ) );		}		$settings = $this->settings;		$page     = get_page_by_path( 'portal-arc', OBJECT, 'page' );		$page_url = $page ? get_permalink( $page->ID ) : '';		if ( isset( $_POST['arc_portal_import_config'] ) && check_admin_referer( 'arc_portal_import_config' ) ) {			$path = $this->find_config_file();			if ( $path && $this->import_apps_config( $path ) ) {				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'URLs imported successfully.', 'arc-portal' ) . '</p></div>';				$settings = $this->get_settings();			}
-else {				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not import. Make sure you have run update-arc-urls.js.', 'arc-portal' ) . '</p></div>';			}		}		if ( isset( $_POST['arc_portal_create_page'] ) && check_admin_referer( 'arc_portal_create_page' ) ) {			$existing = get_page_by_path( 'portal-arc', OBJECT, 'page' );			if ( ! $existing ) {				$page_id = wp_insert_post(					array(						'post_title'   => __( 'Portal ARC', 'arc-portal' ),						'post_name'    => 'portal-arc',						'post_content' => '[arc_portal]',						'post_status'  => 'publish',						'post_type'    => 'page',					)				);				if ( ! is_wp_error( $page_id ) ) {					$page     = get_post( $page_id );					$page_url = get_permalink( $page_id );					echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Page created.', 'arc-portal' ) . '</p></div>';				}			}
-else {				$page_url = get_permalink( $existing->ID );				echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__( 'The page already exists.', 'arc-portal' ) . '</p></div>';			}		}		?>		<div class="wrap bg-white p-6 font-sans">			<h1 class="text-3xl font-bold text-gray-900 mb-2"><?php echo esc_html( get_admin_page_title() );
+?>				</p>				<?php				$config_path = $this->find_config_file();
+				if ( $config_path ) {					echo '<p>' . esc_html__( 'File found:', 'arc-portal' ) . ' <code>' . esc_html( $config_path ) . '</code></p>';
+				}				?>				<input type="hidden" name="arc_portal_import_config" value="1">				<?php submit_button( __( 'Import URLs now', 'arc-portal' ), 'secondary', 'arc_portal_import_config_submit' );
+?>			</form>		</div>		<?php	}	/**	 * Render the quick setup wizard page.	 */	public function render_setup_page() {		if ( ! current_user_can( 'manage_options' ) ) {			wp_die( esc_html__( 'You do not have permission.', 'arc-portal' ) );
+		}		$settings = $this->settings;
+		$page     = get_page_by_path( 'portal-arc', OBJECT, 'page' );
+		$page_url = $page ? get_permalink( $page->ID ) : '';
+		if ( isset( $_POST['arc_portal_import_config'] ) && check_admin_referer( 'arc_portal_import_config' ) ) {			$path = $this->find_config_file();
+			if ( $path && $this->import_apps_config( $path ) ) {				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'URLs imported successfully.', 'arc-portal' ) . '</p></div>';
+				$settings = $this->get_settings();
+			}
+else {				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not import. Make sure you have run update-arc-urls.js.', 'arc-portal' ) . '</p></div>';
+			}		}		if ( isset( $_POST['arc_portal_create_page'] ) && check_admin_referer( 'arc_portal_create_page' ) ) {			$existing = get_page_by_path( 'portal-arc', OBJECT, 'page' );
+			if ( ! $existing ) {				$page_id = wp_insert_post(					array(						'post_title'   => __( 'Portal ARC', 'arc-portal' ),						'post_name'    => 'portal-arc',						'post_content' => '[arc_portal]',						'post_status'  => 'publish',						'post_type'    => 'page',					)				);
+				if ( ! is_wp_error( $page_id ) ) {					$page     = get_post( $page_id );
+					$page_url = get_permalink( $page_id );
+					echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Page created.', 'arc-portal' ) . '</p></div>';
+				}			}
+else {				$page_url = get_permalink( $existing->ID );
+				echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__( 'The page already exists.', 'arc-portal' ) . '</p></div>';
+			}		}		?>		<div class="wrap bg-white p-6 font-sans">			<h1 class="text-3xl font-bold text-gray-900 mb-2"><?php echo esc_html( get_admin_page_title() );
 ?></h1>			<p class="text-gray-500 mb-6"><?php esc_html_e( 'Set up the portal in 3 steps:', 'arc-portal' );
 ?></p>			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">					<h2 class="text-xl font-bold mb-2">1. <?php esc_html_e( 'Import URLs', 'arc-portal' );
 ?></h2>					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Run update-arc-urls.js and then import the JSON.', 'arc-portal' );
-?></p>					<?php					$config_path = $this->find_config_file();					if ( $config_path ) {						echo '<p class="text-sm text-emerald-600 mb-4"><span class="font-semibold">✓</span> ' . esc_html__( 'Config ready', 'arc-portal' ) . '</p>';					}
-else {						echo '<p class="text-sm text-amber-600 mb-4"><span class="font-semibold">⚠</span> ' . esc_html__( 'arc-apps-config.json was not found', 'arc-portal' ) . '</p>';					}					?>					<form method="post" action="">						<?php wp_nonce_field( 'arc_portal_import_config' );
+?></p>					<?php					$config_path = $this->find_config_file();
+					if ( $config_path ) {						echo '<p class="text-sm text-emerald-600 mb-4"><span class="font-semibold">✓</span> ' . esc_html__( 'Config ready', 'arc-portal' ) . '</p>';
+					}
+else {						echo '<p class="text-sm text-amber-600 mb-4"><span class="font-semibold">⚠</span> ' . esc_html__( 'arc-apps-config.json was not found', 'arc-portal' ) . '</p>';
+					}					?>					<form method="post" action="">						<?php wp_nonce_field( 'arc_portal_import_config' );
 ?>						<input type="hidden" name="arc_portal_import_config" value="1">						<?php submit_button( __( 'Import URLs', 'arc-portal' ), 'primary', 'arc_portal_import_config_submit', false, array( 'class' => 'px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer' ) );
 ?>					</form>				</div>				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">					<h2 class="text-xl font-bold mb-2">2. <?php esc_html_e( 'Create portal page', 'arc-portal' );
 ?></h2>					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Automatically create a page with the [arc_portal] shortcode.', 'arc-portal' );
@@ -95,7 +272,10 @@ else {						echo '<p class="text-sm text-amber-600 mb-4"><span class="font-semib
 ?>						<input type="hidden" name="arc_portal_create_page" value="1">						<?php submit_button( __( 'Create page', 'arc-portal' ), 'secondary', 'arc_portal_create_page_submit', false, array( 'class' => 'px-5 py-2.5 bg-slate-500 hover:bg-slate-600 text-white font-medium rounded-lg transition cursor-pointer' ) );
 ?>					</form>				</div>				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">					<h2 class="text-xl font-bold mb-2">3. <?php esc_html_e( 'Verify apps', 'arc-portal' );
 ?></h2>					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Check that each app has a URL and OK status.', 'arc-portal' );
-?></p>					<ul class="space-y-2 text-sm text-gray-700 mb-4">					<?php foreach ( $this->get_apps() as $key => $app ) : ?>						<?php						$status = $this->get_app_status( $app['url'] );						$color  = $status['color'];						$dot    = 'green' === $color ? '🟢' : ( 'orange' === $color ? '🟠' : '🔴' );						?>						<li>							<strong class="text-gray-900"><?php echo esc_html( $app['label'] );
+?></p>					<ul class="space-y-2 text-sm text-gray-700 mb-4">					<?php foreach ( $this->get_apps() as $key => $app ) : ?>						<?php						$status = $this->get_app_status( $app['url'] );
+						$color  = $status['color'];
+						$dot    = 'green' === $color ? '🟢' : ( 'orange' === $color ? '🟠' : '🔴' );
+						?>						<li>							<strong class="text-gray-900"><?php echo esc_html( $app['label'] );
 ?>:</strong>							<?php echo esc_html( $dot . ' ' . $status['text'] );
 ?>						</li>					<?php endforeach;
 ?>					</ul>					<a class="inline-flex items-center px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition no-underline" href="<?php echo esc_url( admin_url( 'admin.php?page=arc-portal-advanced' ) );
@@ -109,32 +289,33 @@ else {						echo '<p class="text-sm text-amber-600 mb-4"><span class="font-semib
 	public function ajax_render_app() {
 		check_ajax_referer( 'arc_portal_render_app', 'nonce' );
 
-		if ( ! is_user_logged_in() || ! ->has_allowed_role() ) {
+		if ( ! is_user_logged_in() || ! $this->has_allowed_role() ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission.', 'arc-portal' ) ) );
 		}
 
-		 = isset( ['app'] ) ? sanitize_key( wp_unslash( ['app'] ) ) : '';
-		     = ->get_app(  );
+		 $app_key = isset( $_REQUEST['app'] ) ? sanitize_key( wp_unslash( $_REQUEST['app'] ) ) : '';
+		     $app = Arc_Portal_App_Registry::instance()->get_app( $app_key );
+		  $target = isset( $_REQUEST['target'] ) ? sanitize_key( wp_unslash( $_REQUEST['target'] ) ) : '';
 
-		if ( !  || empty( ['target'] ) ) {
+		if ( ! $app || empty( $target ) ) {
 			wp_send_json_error( array( 'message' => __( 'App not found.', 'arc-portal' ) ) );
 		}
 
-		if ( 'shortcode' === ['target'] && ! empty( ['shortcode'] ) ) {
-			 = do_shortcode( '[' . sanitize_text_field( ['shortcode'] ) . ']' );
-			wp_send_json_success( array( 'html' =>  ) );
+		if ( 'shortcode' === $target && ! empty( $_REQUEST['shortcode'] ) ) {
+			 $html = do_shortcode( '[' . sanitize_text_field( wp_unslash( $_REQUEST['shortcode'] ) ) . ']' );
+			wp_send_json_success( array( 'html' => $html ) );
 		}
 
-		if ( 'ajax' === ['target'] ) {
+		if ( 'ajax' === $target ) {
 			ob_start();
 			/**
 			 * Fires when an app with target 'ajax' is requested.
 			 *
 			 * @param array  App configuration.
 			 */
-			do_action( 'arc_portal_app_ajax_content',  );
-			 = ob_get_clean();
-			wp_send_json_success( array( 'html' =>  ?  : '<p>' . esc_html__( 'No content configured for this app.', 'arc-portal' ) . '</p>' ) );
+			do_action( 'arc_portal_app_ajax_content', $app );
+			 $html = ob_get_clean();
+			wp_send_json_success( array( 'html' => $html ? $html : '<p>' . esc_html__( 'No content configured for this app.', 'arc-portal' ) . '</p>' ) );
 		}
 
 		wp_send_json_error( array( 'message' => __( 'Unsupported target.', 'arc-portal' ) ) );

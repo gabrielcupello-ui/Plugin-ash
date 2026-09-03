@@ -672,7 +672,7 @@ class Arc_API_Frontend_App {
 
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-					<h2 class="text-xl font-bold mb-2">1. <?php esc_html_e( 'Importar endpoints', 'arc-api-frontend' ); ?></h2>
+					<h2 class="text-xl font-bold mb-2">1. <?php esc_html_e( 'Import endpoints', 'arc-api-frontend' ); ?></h2>
 					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Run update-arc-urls.js and then import the JSON.', 'arc-api-frontend' ); ?></p>
 					<?php
 					$config_path = $this->find_config_file();

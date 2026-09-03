@@ -1,9 +1,9 @@
 /**
- * Endpoint doPost para IPC Time Clock.
- * Añade este archivo al proyecto de Apps Script y despliega la Web App.
- * Guarda la API key en ScriptProperties: API_KEY.
+ * doPost endpoint for IPC Time Clock.
+ * Add this file to the Apps Script project and deploy the Web App.
+ * Save the API key in ScriptProperties: API_KEY.
  *
- * Acciones soportadas:
+ * Supported actions:
  * - clock_in:  { client, activity }
  * - clock_out: {}
  * - get_state: {}
@@ -14,7 +14,7 @@ function doPost(e) {
   const body = JSON.parse(e.postData.contents || '{}');
 
   if (body.api_key !== PropertiesService.getScriptProperties().getProperty('API_KEY')) {
-    return jsonResponse_({ success: false, error: 'API key inválida' });
+    return jsonResponse_({ success: false, error: 'Invalid API key' });
   }
 
   const action = body.action;
@@ -29,7 +29,7 @@ function doPost(e) {
     case 'get_stats':
       return jsonResponse_(getStatsFromWP_(body));
     default:
-      return jsonResponse_({ success: false, error: 'Acción no soportada' });
+      return jsonResponse_({ success: false, error: 'Action not supported' });
   }
 }
 
@@ -59,7 +59,7 @@ function clockInFromWP_(data) {
     '', '', '', '', '', '', '', '', ''// Flags, Approved By, Approved At, Week/Month Key, Project, Task, Tags
   ];
   sh.appendRow(row);
-  return { success: true, message: 'Entrada registrada', timestamp: now };
+  return { success: true, message: 'Entry recorded', timestamp: now };
 }
 
 function clockOutFromWP_(data) {
@@ -83,10 +83,10 @@ function clockOutFromWP_(data) {
       sh.getRange(row, 7).setValue(end);      // End (column 7 is 1-based index 6)
       sh.getRange(row, 9).setValue(hours);    // Paid Hours
       sh.getRange(row, 13).setValue('PENDING'); // Status
-      return { success: true, message: 'Salida registrada', hours: Number(hours.toFixed(2)) };
+      return { success: true, message: 'Exit recorded', hours: Number(hours.toFixed(2)) };
     }
   }
-  return { success: false, error: 'No hay entrada abierta para este usuario' };
+  return { success: false, error: 'There is no open entry for this user' };
 }
 
 function getStateFromWP_(data) {

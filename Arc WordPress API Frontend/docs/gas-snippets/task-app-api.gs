@@ -1,14 +1,14 @@
 /**
- * Endpoint doPost para Arc Task App.
- * Añade este archivo al proyecto y despliega la Web App.
- * Reutiliza las funciones existentes de Code.gs.
+ * doPost endpoint for Arc Task App.
+ * Add this file to the project and deploy the Web App.
+ * Reuses existing Code.gs functions.
  */
 
 function doPost(e) {
   const body = JSON.parse(e.postData.contents || '{}');
 
   if (body.api_key !== PropertiesService.getScriptProperties().getProperty('API_KEY')) {
-    return jsonResponse_({ success: false, error: 'API key inválida' });
+    return jsonResponse_({ success: false, error: 'Invalid API key' });
   }
 
   const action = body.action;
@@ -23,7 +23,7 @@ function doPost(e) {
     case 'get_stats':
       return jsonResponse_(getStatsFromWP_(body));
     default:
-      return jsonResponse_({ success: false, error: 'Acción no soportada' });
+      return jsonResponse_({ success: false, error: 'Action not supported' });
   }
 }
 
@@ -70,7 +70,7 @@ function createTaskFromWP_(data) {
     dueDate: data.dueDate
   };
   const created = createTask(taskData);
-  return { success: true, message: 'Tarea creada', tasks: created };
+  return { success: true, message: 'Task created', tasks: created };
 }
 
 function updateTaskFromWP_(data) {
@@ -84,7 +84,7 @@ function updateTaskFromWP_(data) {
   if (data.projectId !== undefined) taskData.projectId = data.projectId;
 
   const updated = updateTask(data.taskId, taskData);
-  return { success: true, message: 'Tarea actualizada', tasks: updated };
+  return { success: true, message: 'Task updated', tasks: updated };
 }
 
 function getStatsFromWP_(data) {

@@ -42,17 +42,17 @@ if ( ! isset( $app ) ) {
 				<div>
 					<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'English level', 'arc-api-frontend' ); ?></label>
 					<select id="arc-hr-english" name="english_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-						<option value="Básico"><?php esc_html_e( 'Basic', 'arc-api-frontend' ); ?></option>
-						<option value="Intermedio"><?php esc_html_e( 'Intermediate', 'arc-api-frontend' ); ?></option>
-						<option value="Avanzado"><?php esc_html_e( 'Advanced', 'arc-api-frontend' ); ?></option>
+						<option value="Basic"><?php esc_html_e( 'Basic', 'arc-api-frontend' ); ?></option>
+						<option value="Intermediate"><?php esc_html_e( 'Intermediate', 'arc-api-frontend' ); ?></option>
+						<option value="Advanced"><?php esc_html_e( 'Advanced', 'arc-api-frontend' ); ?></option>
 					</select>
 				</div>
 				<div>
 					<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'Excel level', 'arc-api-frontend' ); ?></label>
 					<select id="arc-hr-excel" name="excel_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-						<option value="Básico"><?php esc_html_e( 'Basic', 'arc-api-frontend' ); ?></option>
-						<option value="Intermedio"><?php esc_html_e( 'Intermediate', 'arc-api-frontend' ); ?></option>
-						<option value="Avanzado"><?php esc_html_e( 'Advanced', 'arc-api-frontend' ); ?></option>
+						<option value="Basic"><?php esc_html_e( 'Basic', 'arc-api-frontend' ); ?></option>
+						<option value="Intermediate"><?php esc_html_e( 'Intermediate', 'arc-api-frontend' ); ?></option>
+						<option value="Advanced"><?php esc_html_e( 'Advanced', 'arc-api-frontend' ); ?></option>
 					</select>
 				</div>
 			</div>

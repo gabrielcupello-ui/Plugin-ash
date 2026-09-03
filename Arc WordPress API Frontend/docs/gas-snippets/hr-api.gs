@@ -1,13 +1,13 @@
 /**
- * Endpoint doPost para Arc Human Resources.
- * Añade este archivo al proyecto y despliega la Web App.
+ * doPost endpoint for Arc Human Resources.
+ * Add this file to the project and deploy the Web App.
  */
 
 function doPost(e) {
   const body = JSON.parse(e.postData.contents || '{}');
 
   if (body.api_key !== PropertiesService.getScriptProperties().getProperty('API_KEY')) {
-    return jsonResponse_({ success: false, error: 'API key inválida' });
+    return jsonResponse_({ success: false, error: 'Invalid API key' });
   }
 
   const action = body.action;
@@ -20,7 +20,7 @@ function doPost(e) {
     case 'get_stats':
       return jsonResponse_(getStatsFromWP_(body));
     default:
-      return jsonResponse_({ success: false, error: 'Acción no soportada' });
+      return jsonResponse_({ success: false, error: 'Action not supported' });
   }
 }
 
@@ -52,7 +52,7 @@ function submitApplicationFromWP_(data) {
     new Date()
   ]);
 
-  return { success: true, message: 'Solicitud recibida' };
+  return { success: true, message: 'Application received' };
 }
 
 function getInterviewsFromWP_(data) {

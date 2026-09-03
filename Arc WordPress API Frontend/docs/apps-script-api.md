@@ -21,32 +21,32 @@ This plugin implements **Option 2**: WordPress is the frontend; Google Apps Scri
 
 ## doPost Examples by App
 
-En `docs/gas-snippets/` hay archivos `.gs` listos para copiar en cada proyecto de Apps Script:
+The `docs/gas-snippets/` folder contains `.gs` files ready to copy into each Apps Script project:
 
 - `time-clock-api.gs`
 - `eod-report-api.gs`
 - `hr-api.gs`
 - `task-app-api.gs`
 
-Cada uno implementa un `doPost` central que valida `api_key` y despacha `action`.
+Each one implements a central `doPost` that validates `api_key` and dispatches `action`.
 
-## Configuración paso a paso
+## Step-by-Step Configuration
 
-1. En cada app de Apps Script, copia el `.gs` correspondiente de `docs/gas-snippets/`.
-2. Despliega una Web App (`Deploy > New deployment > Web app`) con acceso `Anyone`.
-3. Guarda la URL en **Ajustes > ARC API Frontend**.
-4. Genera una `API Key` en Apps Script y guárdala en `ScriptProperties`:
+1. In each Apps Script app, copy the corresponding `.gs` from `docs/gas-snippets/`.
+2. Deploy a Web App (`Deploy > New deployment > Web app`) with access `Anyone`.
+3. Save the URL in **Settings > ARC API Frontend**.
+4. Generate an `API Key` in Apps Script and save it in `ScriptProperties`:
    ```javascript
-   PropertiesService.getScriptProperties().setProperty('API_KEY', 'tu-clave-segura');
+   PropertiesService.getScriptProperties().setProperty('API_KEY', 'your-secure-key');
    ```
-5. Pega la misma `API Key` en el campo correspondiente de WordPress.
-6. Opcional: configura tokens firmados usando el endpoint `/auth/token`.
+5. Paste the same `API Key` into the corresponding WordPress field.
+6. Optional: configure signed tokens using the `/auth/token` endpoint.
 
-## Acciones recomendadas por app
+## Recommended Actions by App
 
 ### IPC Time Clock
 
-- `clock_in`: registrar entrada.
+- `clock_in`: record entry.
   ```javascript
   function clockIn(data) {
     const ss = SpreadsheetApp.openById('ID');
@@ -66,11 +66,11 @@ Cada uno implementa un `doPost` central que valida `api_key` y despacha `action`
       'WordPress', // source
       'PENDING'
     ]);
-    return { success: true, message: 'Entrada registrada' };
+    return { success: true, message: 'Entry recorded' };
   }
   ```
-- `clock_out`: registrar salida.
-- `get_stats`: devolver estadísticas para el dashboard.
+- `clock_out`: record exit.
+- `get_stats`: return dashboard statistics.
   ```javascript
   function getStats(data) {
     return { success: true, week_hours: 38.5, eod_count: 5, active_tasks: 12, candidates: 3 };
@@ -79,17 +79,17 @@ Cada uno implementa un `doPost` central que valida `api_key` y despacha `action`
 
 ### Arc EOD Report
 
-- `submit`: guardar un EOD report.
-- `get_my_reports`: devolver reportes del usuario.
+- `submit`: save an EOD report.
+- `get_my_reports`: return user reports.
 
 ### Arc Human Resources
 
-- `submit_application`: guardar una solicitud de empleo.
-- `get_interviews`: devolver entrevistas.
+- `submit_application`: save a job application.
+- `get_interviews`: return interviews.
 
 ### Arc Task App
 
-- `get_tasks`: devolver tareas del usuario.
+- `get_tasks`: return user tasks.
   ```javascript
   function getTasks(data) {
     const ss = SpreadsheetApp.openById('ID');
@@ -103,5 +103,5 @@ Cada uno implementa un `doPost` central que valida `api_key` y despacha `action`
     return { success: true, tasks: tasks };
   }
   ```
-- `create_task`: crear una tarea.
-- `update_task`: actualizar estado.
+- `create_task`: create a task.
+- `update_task`: update status.
