@@ -1,128 +1,128 @@
-# Integración con las apps de ARC
+# Integration with the ARC apps
 
-Este plugin está pensado para agrupar las cuatro apps que viven en `CascadeProjects/Plugins/plantillas`:
+This plugin is designed to group the four apps that live in `CascadeProjects/Plugins/plantillas`:
 
 - `IPC Time Clock`
 - `Arc EOD Report`
 - `Arc Human Resources`
 - `Arc Task App`
 
-Cada una tiene su propio mecanismo de autenticación. A continuación se indica cómo configurarlas en el portal y qué cambios están ya aplicados (o pendientes) para un acceso transparente desde WordPress.
+Each one has its own authentication mechanism. This document explains how to configure them in the portal and which changes are already applied (or pending) for transparent access from WordPress.
 
 ## 1. IPC Time Clock
 
-### Estado
+### Status
 
-**Parcheado.** Los archivos locales ya tienen los cambios; solo falta `clasp push`.
+**Patched.** The local files already contain the changes; only `clasp push` is missing.
 
-### Configuración en el portal
+### Portal configuration
 
-1. Ve a **Ajustes > ARC Portal**.
-2. Pega la URL de despliegue (`Deploy > Web app`) en el campo `time_clock`.
-3. Activa **Pasar email de WordPress a las apps**.
+1. Go to **Settings > ARC Portal**.
+2. Paste the deployment URL (`Deploy > Web app`) into the `time_clock` field.
+3. Enable **Pass WordPress email to the apps**.
 
-### Qué hace el parche
+### What the patch does
 
-- `Web.js` recibe `?wp_user=email` y lo pasa a la plantilla.
-- `Auth.js` acepta `wpUser` como alternativa a `Session.getActiveUser()`.
-- `Index.html` inyecta `window.WP_USER` y lo envía en `bootstrap()` y `signIn()`.
-- `Web.js` permite iframe con `setXFrameOptionsMode(ALLOWALL)`.
+- `Web.js` receives `?wp_user=email` and passes it to the template.
+- `Auth.js` accepts `wpUser` as an alternative to `Session.getActiveUser()`.
+- `Index.html` injects `window.WP_USER` and sends it in `bootstrap()` and `signIn()`.
+- `Web.js` allows iframe with `setXFrameOptionsMode(ALLOWALL)`.
 
-Con esto, un empleado que acceda desde WordPress verá su nombre preseleccionado y podrá entrar sin PIN si su email coincide con la hoja `Employees`.
+With this, an employee accessing from WordPress will see their name preselected and can enter without a PIN if their email matches the `Employees` sheet.
 
 ---
 
 ## 2. Arc EOD Report
 
-### Estado
+### Status
 
-**Parcheado.** Los cambios están en `plantillas/Arc EOD Report/`; falta `clasp push`.
+**Patched.** The changes are in `plantillas/Arc EOD Report/`; `clasp push` is still needed.
 
-### Configuración en el portal
+### Portal configuration
 
-1. Pega la URL de despliegue en el campo `eod_report`.
-2. Activa **Pasar email de WordPress a las apps**.
+1. Paste the deployment URL into the `eod_report` field.
+2. Enable **Pass WordPress email to the apps**.
 
-### Qué hace el parche
+### What the patch does
 
-- `Main.js` recibe `?wp_user=email` y lo pasa al template como `wpUser`.
-- `index.html` inyecta `window.WP_USER`.
-- `Scripts.html` precarga el campo `nombreMiembro` con el email de WordPress y lo deja de solo lectura.
-- `Main.js` ya permite iframe con `setXFrameOptionsMode(ALLOWALL)`.
+- `Main.js` receives `?wp_user=email` and passes it to the template as `wpUser`.
+- `index.html` injects `window.WP_USER`.
+- `Scripts.html` preloads the `nombreMiembro` field with the WordPress email and leaves it read-only.
+- `Main.js` already allows iframe with `setXFrameOptionsMode(ALLOWALL)`.
 
-El formulario de EOD es público; el panel de admin sigue requiriendo login de administrador.
+The EOD form is public; the admin panel still requires an administrator login.
 
 ---
 
 ## 3. Arc Human Resources
 
-### Estado
+### Status
 
-**Parcheado para iframe + precarga de email.** Los cambios están en `plantillas/Arc Human Resources/`; falta `clasp push`.
+**Patched for iframe + email preload.** The changes are in `plantillas/Arc Human Resources/`; `clasp push` is still needed.
 
-### Configuración en el portal
+### Portal configuration
 
-1. Pega la URL de despliegue en el campo `hr`.
-2. Activa **Pasar email de WordPress a las apps**.
+1. Paste the deployment URL into the `hr` field.
+2. Enable **Pass WordPress email to the apps**.
 
-### Qué hace el parche
+### What the patch does
 
-- `Main.js` recibe `?wp_user=email` y lo pasa al template como `wpUser`.
-- `index.html` inyecta `window.WP_USER`.
-- `Main.js` permite iframe con `setXFrameOptionsMode(ALLOWALL)`.
-- `Scripts.html` precarga el campo `correo` del aplicante con el email de WordPress.
+- `Main.js` receives `?wp_user=email` and passes it to the template as `wpUser`.
+- `index.html` injects `window.WP_USER`.
+- `Main.js` allows iframe with `setXFrameOptionsMode(ALLOWALL)`.
+- `Scripts.html` preloads the applicant `correo` field with the WordPress email.
 
-El panel de admin sigue requiriendo autenticación propia.
+The admin panel still requires its own authentication.
 
 ---
 
 ## 4. Arc Task App
 
-### Estado
+### Status
 
-**Parcheado parcialmente.** `doGet` acepta `wp_user` y la página se carga en iframe, pero las operaciones posteriores siguen usando `Session.getActiveUser()`.
+**Partially patched.** `doGet` accepts `wp_user` and the page loads in an iframe, but subsequent operations still use `Session.getActiveUser()`.
 
-### Configuración recomendada en el portal
+### Recommended portal configuration
 
-Por defecto, `task_app` está configurado para abrirse en **una nueva pestaña** porque la app requiere una sesión activa de Google para modificar datos. Para usarla embebida, el usuario debe tener sesión de Google activa en el navegador.
+By default, `task_app` is configured to open in a **new tab** because the app requires an active Google session to modify data. To use it embedded, the user must have an active Google session in the browser.
 
-1. Pega la URL de despliegue en el campo `task_app`.
-2. Activa **Pasar email de WordPress a las apps**.
+1. Paste the deployment URL into the `task_app` field.
+2. Enable **Pass WordPress email to the apps**.
 
-### Qué hace el parche
+### What the patch does
 
-- `Main.js` recibe `?wp_user=email` y lo usa en `doGet`.
-- `Auth.js` añade `getEffectiveUser_(wpUser)` como fallback de `currentEmail_()`.
-- `index.html` inyecta `window.WP_USER` y `getInitialData()` lo recibe.
-- `Main.js` permite iframe con `setXFrameOptionsMode(ALLOWALL)`.
+- `Main.js` receives `?wp_user=email` and uses it in `doGet`.
+- `Auth.js` adds `getEffectiveUser_(wpUser)` as a fallback for `currentEmail_()`.
+- `index.html` injects `window.WP_USER` and `getInitialData()` receives it.
+- `Main.js` allows iframe with `setXFrameOptionsMode(ALLOWALL)`.
 
-Para un SSO completo en todas las operaciones (crear/editar tareas) se requiere un refactor mayor o autenticación por token.
+Full SSO for all operations (create/edit tasks) requires a larger refactor or token-based authentication.
 
 ---
 
-## Consideraciones de iframe
+## Iframe considerations
 
-Google Apps Script, por defecto, no permite que una Web App se cargue en iframe. Todas las apps ahora usan:
+Google Apps Script, by default, does not allow a Web App to be loaded in an iframe. All apps now use:
 
 ```javascript
 .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
 ```
 
-## Resumen rápido
+## Quick summary
 
-| App | Login actual | Parámetro útil | Cambio aplicado |
-|-----|--------------|----------------|-----------------|
-| IPC Time Clock | Nombre + PIN / Google | `wp_user` | Login automático en iframe |
-| Arc EOD Report | Público / Admin con pass | `wp_user` | Precarga email en formulario |
-| Arc Human Resources | Público / Admin con sesión | `wp_user` | Precarga email en formulario |
-| Arc Task App | Google Account | `wp_user` | Carga inicial con `wp_user`; operaciones requieren Google login |
+| App | Current login | Useful parameter | Applied change |
+|-----|---------------|------------------|----------------|
+| IPC Time Clock | Name + PIN / Google | `wp_user` | Automatic iframe login |
+| Arc EOD Report | Public / Admin with pass | `wp_user` | Email preloaded in form |
+| Arc Human Resources | Public / Admin with session | `wp_user` | Email preloaded in form |
+| Arc Task App | Google Account | `wp_user` | Initial load with `wp_user`; operations require Google login |
 
-## Despliegue
+## Deployment
 
-Después de cualquier cambio en `plantillas/`, ejecuta:
+After any change to `plantillas/`, run:
 
 ```bash
 clasp push
 ```
 
-Luego en Apps Script, crea un despliegue de tipo **Web app** y copia la URL en **Ajustes > ARC Portal**.
+Then in Apps Script, create a **Web app** deployment and copy the URL into **Settings > ARC Portal**.

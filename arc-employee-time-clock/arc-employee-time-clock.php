@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Arc Employee Time Clock
  * Plugin URI:  https://ashrivercollective.com
- * Description: Cronómetro unificado para empleados estilo Clockify e IPC Time Clock. Incluye fichaje en vivo, cliente/actividad/proyecto/tarea/etiquetas, pausa/reanudación, timesheet semanal, reportes, PTO, festivos, ausencias, bloqueo de semanas y aprobaciones.
+ * Description: Unified employee time clock in the style of Clockify and IPC Time Clock. Includes live time tracking, client/activity/project/task/tags, pause/resume, weekly timesheet, reports, PTO, holidays, leave, week locking and approvals.
  * Version:     1.0.0
  * Author:      ARC Automation Team
  * License:     GPL-2.0-or-later

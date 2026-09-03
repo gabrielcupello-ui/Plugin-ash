@@ -55,7 +55,7 @@ class Arc_API_Frontend_Auth {
 	public function issue_token() {
 		$user = wp_get_current_user();
 		if ( ! $user->exists() ) {
-			return new WP_Error( 'not_logged_in', __( 'No autenticado', 'arc-api-frontend' ), array( 'status' => 401 ) );
+			return new WP_Error( 'not_logged_in', __( 'Not authenticated', 'arc-api-frontend' ), array( 'status' => 401 ) );
 		}
 
 		$expires = time() + 300;
@@ -75,25 +75,25 @@ class Arc_API_Frontend_Auth {
 		$parts  = explode( '|', $token );
 
 		if ( count( $parts ) !== 4 ) {
-			return new WP_Error( 'invalid_token', __( 'Token inválido', 'arc-api-frontend' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_token', __( 'Invalid token', 'arc-api-frontend' ), array( 'status' => 400 ) );
 		}
 
 		list( $email, $expires, $user_id, $hash ) = $parts;
 
 		if ( ! is_email( $email ) || ! is_numeric( $user_id ) || (int) $expires < time() ) {
-			return new WP_Error( 'invalid_token', __( 'Token expirado o inválido', 'arc-api-frontend' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_token', __( 'Token expired or invalid', 'arc-api-frontend' ), array( 'status' => 400 ) );
 		}
 
 		$payload = $email . '|' . $expires . '|' . $user_id;
 		$expected = hash_hmac( 'sha256', $payload, $this->get_secret() );
 
 		if ( ! hash_equals( $expected, $hash ) ) {
-			return new WP_Error( 'invalid_signature', __( 'Firma inválida', 'arc-api-frontend' ), array( 'status' => 403 ) );
+			return new WP_Error( 'invalid_signature', __( 'Invalid signature', 'arc-api-frontend' ), array( 'status' => 403 ) );
 		}
 
 		$user = get_user_by( 'email', $email );
 		if ( ! $user || $user->ID !== (int) $user_id ) {
-			return new WP_Error( 'user_mismatch', __( 'Usuario no coincide', 'arc-api-frontend' ), array( 'status' => 403 ) );
+			return new WP_Error( 'user_mismatch', __( 'User does not match', 'arc-api-frontend' ), array( 'status' => 403 ) );
 		}
 
 		return rest_ensure_response( array(

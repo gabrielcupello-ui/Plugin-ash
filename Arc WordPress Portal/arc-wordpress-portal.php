@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: Ash River Collective — Portal Integrado
+ * Plugin Name: Ash River Collective — Integrated Portal
  * Plugin URI:  https://ashrivercollective.com
- * Description: Portal centralizado en WordPress que agrupa las apps de Google Apps Script: IPC Time Clock, EOD Report, Human Resources y Task App.
+ * Description: Centralized WordPress portal that groups the ARC Google Apps Script apps: IPC Time Clock, EOD Report, Human Resources and Task App.
  * Version:     1.1.0
  * Author:      ARC Automation Team
  * License:     GPL-2.0-or-later

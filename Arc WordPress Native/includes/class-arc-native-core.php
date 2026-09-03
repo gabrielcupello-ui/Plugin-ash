@@ -190,7 +190,7 @@ class Arc_Native_Core {
 		}
 
 		if ( ! $module ) {
-			return '<div class="arc-native-notice error">' . esc_html__( 'Módulo no encontrado.', 'arc-native' ) . '</div>';
+			return '<div class="arc-native-notice error">' . esc_html__( 'Module not found.', 'arc-native' ) . '</div>';
 		}
 
 		if ( ! empty( $module['capability'] ) && ! current_user_can( $module['capability'] ) ) {
@@ -215,7 +215,7 @@ class Arc_Native_Core {
 			echo '<div class="arc-native-card">';
 			echo '<h2>' . esc_html( $module['label'] ) . '</h2>';
 			echo '<p>' . esc_html( $module['description'] ) . '</p>';
-			echo '<p class="arc-native-hint">' . esc_html__( 'Instala o activa el módulo correspondiente para ver su contenido.', 'arc-native' ) . '</p>';
+			echo '<p class="arc-native-hint">' . esc_html__( 'Install or activate the corresponding module to view its content.', 'arc-native' ) . '</p>';
 			echo '</div>';
 		}
 
@@ -228,7 +228,7 @@ class Arc_Native_Core {
 	 * @return string
 	 */
 	private function access_denied() {
-		return '<div class="max-w-md mx-auto my-10 p-8 bg-red-50 border border-red-200 text-red-800 rounded-2xl text-center"><p class="mb-4">' . esc_html__( 'Debes iniciar sesión para acceder.', 'arc-native' ) . '</p><a class="inline-flex items-center px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-lg transition no-underline" href="' . esc_url( wp_login_url( get_permalink() ) ) . '">' . esc_html__( 'Iniciar sesión', 'arc-native' ) . '</a></div>';
+		return '<div class="max-w-md mx-auto my-10 p-8 bg-red-50 border border-red-200 text-red-800 rounded-2xl text-center"><p class="mb-4">' . esc_html__( 'You must log in to access.', 'arc-native' ) . '</p><a class="inline-flex items-center px-5 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-lg transition no-underline" href="' . esc_url( wp_login_url( get_permalink() ) ) . '">' . esc_html__( 'Log in', 'arc-native' ) . '</a></div>';
 	}
 
 	/**
@@ -368,45 +368,45 @@ class Arc_Native_Core {
 			}
 			update_option( 'arc_native_module_settings', $stored );
 
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Configuración guardada.', 'arc-native' ) . '</p></div>';
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Settings saved.', 'arc-native' ) . '</p></div>';
 		}
 
 		$modules = Arc_Native_Modules::instance()->get_all();
 		?>
 		<div class="wrap bg-white p-6 font-sans">
 			<h1 class="text-3xl font-bold text-gray-900 mb-2"><?php echo esc_html( get_admin_page_title() ); ?></h1>
-			<p class="text-gray-500 mb-8"><?php esc_html_e( 'Núcleo nativo de Ash River Collective. Configura la sincronización con Google y los módulos activos.', 'arc-native' ); ?></p>
+			<p class="text-gray-500 mb-8"><?php esc_html_e( 'Ash River Collective native core. Configure Google sync and active modules.', 'arc-native' ); ?></p>
 
 			<form method="post" class="max-w-5xl space-y-8">
 				<?php wp_nonce_field( 'arc_native_save_settings', 'arc_native_settings_nonce' ); ?>
 				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
 					<div>
-						<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'URL de Google Sync Bridge', 'arc-native' ); ?></label>
+						<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'Google Sync Bridge URL', 'arc-native' ); ?></label>
 						<input type="url" name="arc_native_google_sync_url" value="<?php echo esc_url( get_option( 'arc_native_google_sync_url', '' ) ); ?>" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
-						<p class="text-sm text-gray-400 mt-1"><?php esc_html_e( 'Endpoint de Apps Script que recibe cambios de la cola de sincronización.', 'arc-native' ); ?></p>
+						<p class="text-sm text-gray-400 mt-1"><?php esc_html_e( 'Apps Script endpoint that receives changes from the sync queue.', 'arc-native' ); ?></p>
 					</div>
 					<div>
 						<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'API Secret', 'arc-native' ); ?></label>
 						<input type="text" name="arc_native_google_api_secret" value="<?php echo esc_attr( get_option( 'arc_native_google_api_secret', '' ) ); ?>" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none">
-						<p class="text-sm text-gray-400 mt-1"><?php esc_html_e( 'Secreto compartido con Google Apps Script. Dejar en blanco para usar wp_salt().', 'arc-native' ); ?></p>
+						<p class="text-sm text-gray-400 mt-1"><?php esc_html_e( 'Shared secret with Google Apps Script. Leave blank to use wp_salt().', 'arc-native' ); ?></p>
 					</div>
 					<div class="flex items-center gap-2">
 						<input type="checkbox" name="arc_native_sync_enabled" value="1" <?php checked( get_option( 'arc_native_sync_enabled', false ) ); ?> class="w-5 h-5 text-sky-600 rounded focus:ring-sky-500 border-gray-300">
-						<label class="text-sm font-medium text-gray-700"><?php esc_html_e( 'Encolar cambios para sincronizar con Google.', 'arc-native' ); ?></label>
+						<label class="text-sm font-medium text-gray-700"><?php esc_html_e( 'Queue changes to sync with Google.', 'arc-native' ); ?></label>
 					</div>
 				</div>
 
-				<h2 class="text-xl font-bold text-gray-900 mt-10 mb-4"><?php esc_html_e( 'Módulos registrados', 'arc-native' ); ?></h2>
+				<h2 class="text-xl font-bold text-gray-900 mt-10 mb-4"><?php esc_html_e( 'Registered modules', 'arc-native' ); ?></h2>
 				<div class="overflow-x-auto border border-gray-200 rounded-2xl shadow-sm">
 					<table class="w-full text-left border-collapse">
 						<thead class="bg-gray-50 border-b border-gray-200">
 							<tr>
-								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Módulo', 'arc-native' ); ?></th>
+								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Module', 'arc-native' ); ?></th>
 								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Shortcode', 'arc-native' ); ?></th>
-								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Icono', 'arc-native' ); ?></th>
-								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Orden', 'arc-native' ); ?></th>
+								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Icon', 'arc-native' ); ?></th>
+								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Order', 'arc-native' ); ?></th>
 								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Google Sync', 'arc-native' ); ?></th>
-								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Activo', 'arc-native' ); ?></th>
+								<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Active', 'arc-native' ); ?></th>
 							</tr>
 						</thead>
 						<tbody class="text-sm text-gray-700 divide-y divide-gray-100">
@@ -427,7 +427,7 @@ class Arc_Native_Core {
 					</table>
 				</div>
 
-				<?php submit_button( __( 'Guardar cambios', 'arc-native' ), 'primary', 'submit', false, array( 'class' => 'px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
+				<?php submit_button( __( 'Save changes', 'arc-native' ), 'primary', 'submit', false, array( 'class' => 'px-6 py-2.5 bg-sky-500 hover:bg-sky-600 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
 			</form>
 		</div>
 		<?php

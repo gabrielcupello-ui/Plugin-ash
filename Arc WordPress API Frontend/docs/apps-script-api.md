@@ -1,25 +1,25 @@
-# Integración Apps Script para ARC API Frontend
+# Apps Script Integration for the ARC API Frontend
 
-Este plugin implementa la **Opción 2**: WordPress es el frontend; Google Apps Script / Sheets sigue siendo el backend.
+This plugin implements **Option 2**: WordPress is the frontend; Google Apps Script / Sheets remains the backend.
 
-## Cómo funciona
+## How it works
 
-1. El usuario ve formularios y dashboards en WordPress (shortcodes).
-2. Los formularios envían datos al REST API de WordPress:
+1. The user sees forms and dashboards in WordPress (shortcodes).
+2. Forms send data to the WordPress REST API:
    - `/wp-json/arc-api-frontend/v1/time_clock/clock_in`
    - `/wp-json/arc-api-frontend/v1/eod_report/submit`
    - `/wp-json/arc-api-frontend/v1/task_app/get_tasks`
    - etc.
-3. WordPress (como proxy) reenvía la petición a la Web App de Apps Script configurada.
-4. Apps Script recibe `action`, `wp_email`, `wp_name`, `wp_user_id` y `api_key`.
+3. WordPress (as a proxy) forwards the request to the configured Apps Script Web App.
+4. Apps Script receives `action`, `wp_email`, `wp_name`, `wp_user_id`, and `api_key`.
 
-## Seguridad
+## Security
 
-- WordPress valida que el usuario esté logueado y tenga un rol permitido.
-- Cada app puede tener su propia `api_key`.
-- Opcional: usar el endpoint `/wp-json/arc-api-frontend/v1/auth/token` para emitir tokens firmados que Apps Script verifique.
+- WordPress validates that the user is logged in and has an allowed role.
+- Each app can have its own `api_key`.
+- Optional: use the `/wp-json/arc-api-frontend/v1/auth/token` endpoint to issue signed tokens that Apps Script can verify.
 
-## Ejemplos de `doPost` por app
+## doPost Examples by App
 
 En `docs/gas-snippets/` hay archivos `.gs` listos para copiar en cada proyecto de Apps Script:
 

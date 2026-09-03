@@ -31,7 +31,7 @@
 		}).then(function (res) {
 			return res.json().then(function (json) {
 				if (!res.ok) {
-					throw new Error((json && (json.message || json.error)) || 'Error en la petición');
+					throw new Error((json && (json.message || json.error)) || 'Request error');
 				}
 				return json;
 			});
@@ -43,7 +43,7 @@
 		if (isLoading) {
 			el.disabled = true;
 			el.dataset.oldText = el.textContent;
-			el.innerHTML = '<span class="arc-api-loader"></span> ' + (el.dataset.loadingText || 'Cargando...');
+			el.innerHTML = '<span class="arc-api-loader"></span> ' + (el.dataset.loadingText || 'Loading...');
 		} else {
 			el.disabled = false;
 			el.textContent = el.dataset.oldText || el.textContent;
@@ -89,12 +89,12 @@
 
 			apiCall('eod_report', 'submit', data, 'POST')
 				.then(function (res) {
-					showMessage(msg, res.message || 'Reporte enviado correctamente.', 'success');
+					showMessage(msg, res.message || 'Report sent successfully.', 'success');
 					form.reset();
 					localStorage.removeItem(key);
 				})
 				.catch(function (err) {
-					showMessage(msg, err.message || 'Error al enviar.', 'error');
+					showMessage(msg, err.message || 'Error sending.', 'error');
 				})
 				.finally(function () {
 					setLoading(btn, false);
@@ -174,7 +174,7 @@
 					}).join('');
 				})
 				.catch(function () {
-					if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Error al cargar tareas</td></tr>';
+					if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Error loading tasks</td></tr>';
 				});
 		}
 
@@ -213,11 +213,11 @@
 
 			apiCall('hr', 'submit_application', data, 'POST')
 				.then(function (res) {
-					showMessage(msg, res.message || 'Aplicación enviada correctamente.', 'success');
+					showMessage(msg, res.message || 'Application sent successfully.', 'success');
 					form.reset();
 				})
 				.catch(function (err) {
-					showMessage(msg, err.message || 'Error al enviar.', 'error');
+					showMessage(msg, err.message || 'Error sending.', 'error');
 				})
 				.finally(function () {
 					setLoading(btn, false);
@@ -261,7 +261,7 @@
 			timerInterval = setInterval(updateTimer, 1000);
 			btnClockIn.style.display = 'none';
 			btnClockOut.style.display = 'inline-flex';
-			if (statusEl) statusEl.textContent = arcApiFrontend.i18n ? (arcApiFrontend.i18n.clockedIn || 'Sesión activa') : 'Sesión activa';
+			if (statusEl) statusEl.textContent = arcApiFrontend.i18n ? (arcApiFrontend.i18n.clockedIn || 'Active session') : 'Active session';
 			if (remember) {
 				try {
 					localStorage.setItem(storageKey, JSON.stringify({
@@ -281,7 +281,7 @@
 			timerEl.textContent = '00:00:00';
 			btnClockIn.style.display = 'inline-flex';
 			btnClockOut.style.display = 'none';
-			if (statusEl) statusEl.textContent = arcApiFrontend.i18n ? (arcApiFrontend.i18n.noSession || 'No hay sesión activa') : 'No hay sesión activa';
+			if (statusEl) statusEl.textContent = arcApiFrontend.i18n ? (arcApiFrontend.i18n.noSession || 'No active session') : 'No active session';
 			try { localStorage.removeItem(storageKey); } catch (e) {}
 		}
 
@@ -305,7 +305,7 @@
 			setLoading(btn, true);
 			apiCall('time_clock', action, data || {}, 'POST')
 				.then(function (res) {
-					showMessage(clockMsg, res.message || action + ' registrado.', 'success');
+					showMessage(clockMsg, res.message || action + ' recorded.', 'success');
 					if (action === 'clock_in') {
 						setClockedIn(res.timestamp || res.start || new Date(), true);
 					} else if (action === 'clock_out') {
@@ -313,7 +313,7 @@
 					}
 				})
 				.catch(function (err) {
-					showMessage(clockMsg, err.message || 'Error en ' + action, 'error');
+					showMessage(clockMsg, err.message || 'Error in ' + action, 'error');
 				})
 				.finally(function () {
 					setLoading(btn, false);

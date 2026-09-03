@@ -1,4 +1,4 @@
-=== Ash River Collective — Portal Integrado ===
+=== Ash River Collective — Integrated Portal ===
 Contributors:      arc-automation
 Donate link:       https://ashrivercollective.com
 Tags:              portal, google-apps-script, intranet, iframe, sso
@@ -9,18 +9,18 @@ Stable tag:        1.1.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Portal centralizado en WordPress que agrupa las apps de Google Apps Script del equipo ARC.
+Centralized WordPress portal that groups the ARC Google Apps Script apps.
 
 == Description ==
 
-**Ash River Collective — Portal Integrado** centraliza el acceso a las aplicaciones internas del equipo ARC:
+**Ash River Collective — Integrated Portal** centralizes access to the ARC team's internal applications:
 
 * IPC Time Clock
 * Arc EOD Report
 * Arc Human Resources
 * Arc Task App
 
-Incluye sidebar colapsable, header con información del usuario, navegación por iframe, una pantalla de inicio con cards y un puente de autenticación con Google Apps Script.
+It includes a collapsible sidebar, header with user info, iframe navigation, a home screen with cards, and an authentication bridge with Google Apps Script.
 
 == Installation ==
 
@@ -36,7 +36,7 @@ Incluye sidebar colapsable, header con información del usuario, navegación por
 Go to **Settings > ARC Portal**, paste the Google Apps Script Web App URL and, optionally, set the app to open in a new tab.
 
 = Can I pass the WordPress email to the embedded apps? =
-Yes. Enable the option "Pasar email de WordPress a las apps" to append `?wp_user=email` to each iframe URL.
+Yes. Enable the option "Pass WordPress email to the apps" to append `?wp_user=email` to each iframe URL.
 
 == Changelog ==
 

@@ -65,8 +65,8 @@ class Arc_Native_Modules {
 		$this->register(
 			'time_clock',
 			array(
-				'label'         => __( 'Control Horario', 'arc-native' ),
-				'description'   => __( 'Fichaje y timesheet nativo.', 'arc-native' ),
+				'label'         => __( 'Time Clock', 'arc-native' ),
+				'description'   => __( 'Native clock-in and timesheet.', 'arc-native' ),
 				'icon'          => 'clock',
 				'order'         => 10,
 				'shortcode'     => 'arc_native_time_clock',
@@ -80,7 +80,7 @@ class Arc_Native_Modules {
 			'eod',
 			array(
 				'label'         => __( 'EOD Reports', 'arc-native' ),
-				'description'   => __( 'Reportes diarios de fin de jornada.', 'arc-native' ),
+				'description'   => __( 'End-of-day daily reports.', 'arc-native' ),
 				'icon'          => 'file-text',
 				'order'         => 20,
 				'shortcode'     => 'arc_native_eod',
@@ -93,8 +93,8 @@ class Arc_Native_Modules {
 		$this->register(
 			'hr',
 			array(
-				'label'         => __( 'Recursos Humanos', 'arc-native' ),
-				'description'   => __( 'Aplicaciones y gestión de talento.', 'arc-native' ),
+				'label'         => __( 'Human Resources', 'arc-native' ),
+				'description'   => __( 'Applications and talent management.', 'arc-native' ),
 				'icon'          => 'users',
 				'order'         => 30,
 				'shortcode'     => 'arc_native_hr',
@@ -108,7 +108,7 @@ class Arc_Native_Modules {
 			'tasks',
 			array(
 				'label'         => __( 'Task App', 'arc-native' ),
-				'description'   => __( 'Gestión de tareas y proyectos.', 'arc-native' ),
+				'description'   => __( 'Task and project management.', 'arc-native' ),
 				'icon'          => 'check-square',
 				'order'         => 40,
 				'shortcode'     => 'arc_native_tasks',

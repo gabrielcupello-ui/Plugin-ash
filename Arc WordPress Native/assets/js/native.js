@@ -20,7 +20,7 @@
 		}).then(function (res) {
 			return res.json().then(function (json) {
 				if (!res.ok) {
-					throw new Error((json && (json.message || json.error)) || 'Error en la petición');
+					throw new Error((json && (json.message || json.error)) || 'Request failed');
 				}
 				return json;
 			});

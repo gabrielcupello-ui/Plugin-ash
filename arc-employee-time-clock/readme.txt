@@ -9,60 +9,60 @@ Stable tag: 1.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Cronómetro de empleados con fichaje, pausa, clientes, actividades, reportes, PTO, nómina e importación CSV.
+Employee time clock with time tracking, pause, clients, activities, reports, PTO, payroll and CSV import.
 
 == Description ==
 
-**Arc Employee Time Clock** consolida las funciones esenciales de los plugins de fichaje más usados en un solo plugin ligero, moderno y seguro:
+**Arc Employee Time Clock** consolidates the essential features of the most popular time-clock plugins into a single lightweight, modern and secure plugin:
 
-* Fichaje en vivo estilo Clockify (clock in / clock out / pause / resume).
-* Cliente, actividad, proyecto, tarea y etiquetas por entrada.
-* Lista de tareas recientes para retomar con un clic.
-* Timesheet semanal para el empleado con todos los días.
-* Reportes filtrables para administradores.
-* Exportación CSV ampliada.
-* Importación CSV de entradas.
-* Bloqueo de semanas para cierre de nómina.
-* Página de nómina (payroll) por mes.
-* Clientes y actividades administrables.
-* Reglas operativas (redondeo, máximo de jornada, notas obligatorias).
-* Automatizaciones WP Cron (auto-cierre, revisión de banderas, digest, recordatorios y excepciones).
-* Seguimiento de PTO / vacaciones.
-* Flujo de aprobación de entradas.
-* Captura de IP y geolocalización opcional.
-* Festivos y días no laborables configurables.
-* Solicitudes de ausencia/PTO con aprobación.
-* Widget de dashboard para administradores.
-* Entrada manual de tiempo desde el timesheet.
-* Basado en WordPress Coding Standards: nombres de funciones y clases únicos, nonces, sanitización y capacidades.
+* Live Clockify-style time tracking (clock in / clock out / pause / resume).
+* Client, activity, project, task and tags per entry.
+* Recent tasks list to resume with one click.
+* Weekly employee timesheet covering every day.
+* Filterable reports for administrators.
+* Extended CSV export.
+* CSV import of entries.
+* Week locking for payroll close.
+* Payroll page by month.
+* Clients and activities management.
+* Operating rules (rounding, maximum shift length, required notes).
+* WP Cron automations (auto-close, flag sweep, digest, reminders and exceptions).
+* PTO / vacation tracking.
+* Entry approval workflow.
+* IP capture and optional geolocation.
+* Configurable holidays and non-working days.
+* Absence/PTO requests with approval.
+* Dashboard widget for administrators.
+* Manual time entry from the timesheet.
+* Based on WordPress Coding Standards: unique function and class names, nonces, sanitization and capabilities.
 
 == Installation ==
 
-1. Sube la carpeta `arc-employee-time-clock` a `/wp-content/plugins/`.
-2. Activa el plugin en el menú **Plugins**.
-3. Ve a **Employee Time Clock > Settings** para configurar roles, PTO y umbral de horas extra.
-4. Usa los shortcodes `[arc_etc_clock]` y `[arc_etc_timesheet]` en cualquier página.
+1. Upload the `arc-employee-time-clock` folder to `/wp-content/plugins/`.
+2. Activate the plugin from the **Plugins** menu.
+3. Go to **Employee Time Clock > Settings** to configure roles, PTO and the overtime threshold.
+4. Use the shortcodes `[arc_etc_clock]` and `[arc_etc_timesheet]` on any page.
 
 == Frequently Asked Questions ==
 
-= ¿Qué shortcodes usa? =
+= What shortcodes does it use? =
 
-* `[arc_etc_clock]` — panel de fichaje para el empleado.
-* `[arc_etc_timesheet]` — hoja de tiempo semanal del empleado.
+* `[arc_etc_clock]` — employee time clock panel.
+* `[arc_etc_timesheet]` — employee weekly timesheet.
 
-= ¿Pueden varios plugins de fichaje convivir? =
+= Can several time-clock plugins coexist? =
 
-Arc Employee Time Clock utiliza un prefijo único (`arc_etc_`) y un textdomain propio para no interferir con otros plugins de la familia Arc (API Frontend, Portal, Intranet).
+Arc Employee Time Clock uses a unique prefix (`arc_etc_`) and its own text domain so it does not interfere with other Arc family plugins (API Frontend, Portal, Intranet).
 
 == Screenshots ==
 
-1. Cronómetro de fichaje con cliente, actividad, proyecto, tarea y etiquetas.
-2. Timesheet semanal del empleado con entradas manuales y aprobaciones.
-3. Panel de administración con reportes, exportación CSV y flujo de aprobación.
-4. Gestión de clientes, actividades, reglas operativas y bloqueo de semanas.
+1. Time-clock timer with client, activity, project, task and tags.
+2. Employee weekly timesheet with manual entries and approvals.
+3. Administration panel with reports, CSV export and approval workflow.
+4. Management of clients, activities, operating rules and week locking.
 
 == Changelog ==
 
 = 1.0.0 =
-* Versión inicial con fichaje, breaks, timesheet, reportes, PTO, export CSV, aprobaciones, festivos, solicitudes de ausencia, widget de dashboard y entrada manual de tiempo.
-* Integración IPC: clientes, actividades, pausa/reanudación, proyectos, tareas, etiquetas, tareas recientes, bloqueo de semanas, importación CSV, reglas operativas y automatizaciones WP Cron.
+* Initial version with time tracking, breaks, timesheet, reports, PTO, CSV export, approvals, holidays, absence requests, dashboard widget and manual time entry.
+* IPC integration: clients, activities, pause/resume, projects, tasks, tags, recent tasks, week locking, CSV import, operating rules and WP Cron automations.

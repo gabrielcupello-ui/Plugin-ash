@@ -1,140 +1,140 @@
-# Ash River Collective — Portal Integrado para WordPress
+# Ash River Collective — Integrated WordPress Portal
 
-Plugin de WordPress que centraliza el acceso a las apps de Google Apps Script del equipo ARC en un único portal visual:
+WordPress plugin that centralizes access to the ARC team's Google Apps Script apps in a single visual portal:
 
 - **IPC Time Clock**
 - **Arc EOD Report**
 - **Arc Human Resources**
 - **Arc Task App**
 
-Inspirado en la arquitectura del plugin **Intranet ARC** (`Plugin ash/intranet`), ofrece sidebar colapsable, header con usuario, dashboard de accesos directos y un puente de autenticación con Google Apps Script preparado para SSO.
+Inspired by the architecture of the **Intranet ARC** plugin (`Plugin ash/intranet`), it offers a collapsible sidebar, a header with the current user, a quick-access dashboard, and an authentication bridge with Google Apps Script ready for SSO.
 
-## Tabla de contenidos
+## Table of contents
 
-1. [Resumen](#resumen)
-2. [Instalación](#instalación)
-3. [Uso](#uso)
-4. [Configuración](#configuración)
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [Configuration](#configuration)
 5. [Tailwind CSS](#tailwind-css)
-6. [Arquitectura](#arquitectura)
+6. [Architecture](#architecture)
 7. [Shortcodes](#shortcodes)
-8. [Endpoints REST](#endpoints-rest)
-9. [Registro de apps (extensión)](#registro-de-apps-extensión)
-10. [Hooks y filtros](#hooks-y-filtros)
-11. [Auto-configuración](#auto-configuración)
-12. [Integración SSO con Google Apps Script](#integración-sso-con-google-apps-script)
+8. [REST endpoints](#rest-endpoints)
+9. [App registration (extending)](#app-registration-extending)
+10. [Hooks and filters](#hooks-and-filters)
+11. [Auto-configuration](#auto-configuration)
+12. [SSO integration with Google Apps Script](#sso-integration-with-google-apps-script)
 13. [Troubleshooting](#troubleshooting)
 14. [Changelog](#changelog)
-15. [Próximos pasos](#próximos-pasos)
+15. [Next steps](#next-steps)
 
-## Resumen
+## Overview
 
-Este plugin actúa como **Opción 1**: un portal centralizado dentro de WordPress. Las apps de Google Apps Script existentes se embeben mediante iframes o enlaces, sin reescribir su lógica. El plugin gestiona autenticación, roles y un menú lateral dinámico.
+This plugin acts as **Option 1**: a centralized portal inside WordPress. Existing Google Apps Script apps are embedded via iframes or links, without rewriting their logic. The plugin handles authentication, roles, and a dynamic sidebar menu.
 
-## Instalación
+## Installation
 
-1. Copia la carpeta `arc-wordpress-portal` dentro de `wp-content/plugins/`.
-2. Activa el plugin desde **Plugins** en wp-admin.
-3. Ve a **Ajustes > ARC Portal** y pega las URLs de despliegue de cada app.
-4. Guarda los permalinks (**Ajustes > Enlaces permanentes > Guardar**) para activar la ruta `/arc-portal/`.
+1. Copy the `arc-wordpress-portal` folder into `wp-content/plugins/`.
+2. Activate the plugin from **Plugins** in wp-admin.
+3. Go to **Settings > ARC Portal** and paste the deployment URLs for each app.
+4. Save permalinks (**Settings > Permalinks > Save**) to activate the `/arc-portal/` route.
 
-## Uso
+## Usage
 
-### Opción A: Shortcode
+### Option A: Shortcode
 
-Añade el shortcode en cualquier página:
+Add the shortcode to any page:
 
 ```
 [arc_portal]
 ```
 
-### Opción B: Ruta virtual
+### Option B: Virtual route
 
-Visita directamente:
+Visit directly:
 
 ```
-https://tudominio.com/arc-portal/
+https://yourdomain.com/arc-portal/
 ```
 
-La ruta `/arc-portal/` está protegida por login y roles.
+The `/arc-portal/` route is protected by login and roles.
 
-## Configuración
+## Configuration
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| **Título del portal** | Nombre que aparece en el header. |
-| **Título de bienvenida** | Título de la pantalla de inicio. |
-| **Descripción de bienvenida** | Subtítulo de la pantalla de inicio. |
-| **Email de ayuda** | Enlace del botón de ayuda en el header. |
-| **Logo URL** | Imagen del logo en el sidebar. Si está vacío se muestra el título. |
-| **Roles permitidos** | Roles de WordPress que pueden acceder. Los administradores siempre pueden. |
-| **Pasar email de WordPress** | Añade `?wp_user=email` a las URLs de las apps embebidas. |
-| **Login redirect URL** | URL a la que enviar usuarios no logueados. |
-| **Logout URL** | URL de logout personalizada. |
-| **Integración SSO** | Endpoint compartido de GAS y API Secret para tokens firmados. |
+| **Portal title** | Name shown in the header. |
+| **Welcome title** | Title of the home screen. |
+| **Welcome description** | Subtitle of the home screen. |
+| **Help email** | Help button link in the header. |
+| **Logo URL** | Logo image in the sidebar. If empty, the title is shown. |
+| **Allowed roles** | WordPress roles that can access. Administrators always can. |
+| **Pass WordPress email** | Adds `?wp_user=email` to the embedded app URLs. |
+| **Login redirect URL** | URL to send unauthenticated users. |
+| **Logout URL** | Custom logout URL. |
+| **SSO integration** | Shared GAS endpoint and API Secret for signed tokens. |
 
 ## Tailwind CSS
 
-El frontend y las páginas de administración cargan **Tailwind CSS v4** vía CDN:
+The frontend and admin pages load **Tailwind CSS v4** via CDN:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 ```
 
-Todas las plantillas (`portal-shortcode.php`) y los helpers de acceso denegado usan clases utilitarias de Tailwind. `assets/css/portal.css` solo conserva helpers de estado (`is-active`, `hide`, `arc-sidebar-collapsed`) que no genera el CDN.
+All templates (`portal-shortcode.php`) and denied-access helpers use Tailwind utility classes. `assets/css/portal.css` only keeps state helpers (`is-active`, `hide`, `arc-sidebar-collapsed`) that the CDN does not generate.
 
-## Arquitectura
+## Architecture
 
 ```
-Usuario WordPress
+WordPress user
         ↓
-[arc_portal] shortcode  →  /arc-portal/ ruta virtual
+[arc_portal] shortcode  →  /arc-portal/ virtual route
         ↓
   Arc_Portal (singleton)
         ↓
 Arc_Portal_App_Registry + Arc_Portal_Router + Arc_Portal_GAS_Auth_Bridge
         ↓
-plantillas/portal-shortcode.php
+templates/portal-shortcode.php
         ↓
-iframe / nueva pestaña  →  Google Apps Script Web Apps
+iframe / new tab  →  Google Apps Script Web Apps
 ```
 
-- `Arc_Portal`: bootstrap, settings, shortcode, ruta y menú admin.
-- `Arc_Portal_App_Registry`: registro centralizado y ordenado de apps.
-- `Arc_Portal_Router`: intercepta `/arc-portal/` y redirige al template.
-- `Arc_Portal_GAS_Auth_Bridge`: endpoints REST para SSO con Apps Script.
+- `Arc_Portal`: bootstrap, settings, shortcode, route and admin menu.
+- `Arc_Portal_App_Registry`: centralized and ordered app registry.
+- `Arc_Portal_Router`: intercepts `/arc-portal/` and renders the template.
+- `Arc_Portal_GAS_Auth_Bridge`: REST endpoints for SSO with Google Apps Script.
 
 ## Shortcodes
 
-| Shortcode | Descripción |
+| Shortcode | Description |
 |-----------|-------------|
-| `[arc_portal]` | Renderiza el portal completo. |
+| `[arc_portal]` | Renders the full portal. |
 
-## Endpoints REST
+## REST endpoints
 
 Namespace: `/wp-json/arc-portal/v1/`
 
-| Ruta | Método | Descripción | Permisos |
-|------|--------|-------------|----------|
-| `/auth/user` | GET | Devuelve datos del usuario actual para SSO. | Usuario logueado |
-| `/auth/token` | POST | Genera un token firmado temporal. | Usuario logueado |
+| Route | Method | Description | Permissions |
+|-------|--------|-------------|-------------|
+| `/auth/user` | GET | Returns current user data for SSO. | Logged-in user |
+| `/auth/token` | POST | Generates a temporary signed token. | Logged-in user |
 
-Ejemplo de respuesta `/auth/user`:
+Example `/auth/user` response:
 
 ```json
 {
-  "email": "usuario@ashrivercollective.com",
-  "name": "Usuario Ejemplo",
-  "display_name": "Usuario Ejemplo",
+  "email": "user@ashrivercollective.com",
+  "name": "Example User",
+  "display_name": "Example User",
   "roles": ["editor"],
   "timestamp": 1700000000,
   "signature": "..."
 }
 ```
 
-## Registro de apps (extensión)
+## App registration (extending)
 
-El portal usa `Arc_Portal_App_Registry` para que las apps no estén hard-codeadas. Puedes registrar apps adicionales desde otro plugin o `functions.php`:
+The portal uses `Arc_Portal_App_Registry` so apps are not hard-coded. You can register additional apps from another plugin or `functions.php`:
 
 ```php
 add_action( 'arc_portal_registry_init', function ( $registry ) {
@@ -143,35 +143,35 @@ add_action( 'arc_portal_registry_init', function ( $registry ) {
         'url'         => 'https://wiki.ashrivercollective.org',
         'icon'        => 'book',
         'target'      => 'new_tab',
-        'description' => 'Documentación interna',
+        'description' => 'Internal documentation',
         'order'       => 25,
         'capability'  => 'read',
     ) );
 } );
 ```
 
-Targets soportados: `iframe`, `new_tab`, `modal`, `ajax`.
+Supported targets: `iframe`, `new_tab`, `modal`, `ajax`.
 
-## Hooks y filtros
+## Hooks and filters
 
-| Hook / Filtro | Tipo | Descripción |
+| Hook / Filter | Type | Description |
 |---------------|------|-------------|
-| `arc_portal_registry_init` | action | Se dispara al construir el registro. Recibe `Arc_Portal_App_Registry`. |
-| `arc_portal_registered_apps` | filter | Permite modificar la lista final de apps. |
-| `arc_portal_force_assets` | filter | Fuerza la carga de assets. |
-| `arc_portal_can_access` | filter | Permite anular el acceso al portal. |
-| `arc_portal_before_render` | action | Se dispara antes de incluir el template. |
+| `arc_portal_registry_init` | action | Fired when building the registry. Receives `Arc_Portal_App_Registry`. |
+| `arc_portal_registered_apps` | filter | Modify the final app list. |
+| `arc_portal_force_assets` | filter | Force asset loading. |
+| `arc_portal_can_access` | filter | Override portal access. |
+| `arc_portal_before_render` | action | Fired before including the template. |
 
-### Ejemplo: añadir un enlace externo
+### Example: add an external link
 
 ```php
 add_filter( 'arc_portal_registered_apps', function ( $apps ) {
     $apps['drive'] = array(
-        'label'       => 'Drive Compartido',
+        'label'       => 'Shared Drive',
         'url'         => 'https://drive.google.com',
         'icon'        => 'file-text',
         'target'      => 'new_tab',
-        'description' => 'Acceso rápido al Drive del equipo',
+        'description' => 'Quick access to the team drive',
         'order'       => 15,
         'capability'  => 'read',
         'enabled'     => true,
@@ -180,45 +180,45 @@ add_filter( 'arc_portal_registered_apps', function ( $apps ) {
 } );
 ```
 
-## Auto-configuración
+## Auto-configuration
 
-- `plantillas/arc-apps-config.json` contiene los `scriptId` y rutas de cada app.
-- `plantillas/update-arc-urls.js` usa `clasp deployments` para leer las URLs y actualizar el JSON.
-- El JSON se copia a ambos plugins y se importa automáticamente a WordPress.
-- En **Ajustes > ARC Portal** aparece el botón **Importar URLs ahora**.
+- `plantillas/arc-apps-config.json` contains the `scriptId` and paths of each app.
+- `plantillas/update-arc-urls.js` uses `clasp deployments` to read the URLs and update the JSON.
+- The JSON is copied to both plugins and automatically imported into WordPress.
+- In **Settings > ARC Portal** the **Import URLs now** button is available.
 
-## Integración SSO con Google Apps Script
+## SSO integration with Google Apps Script
 
-1. Despliega una Web App en Apps Script con `doGet`/`doPost`.
-2. Configura **URL del endpoint compartido de GAS** y **API Secret**.
-3. El portal genera tokens firmados con HMAC-SHA256.
-4. Apps Script valida la firma usando el mismo secreto (o `wp_salt('auth')` si se deja vacío).
-5. Consulta la documentación en `docs/gas-auth-bridge.md`.
+1. Deploy a Web App in Apps Script with `doGet`/`doPost`.
+2. Configure **Shared GAS endpoint URL** and **API Secret**.
+3. The portal generates HMAC-SHA256 signed tokens.
+4. Apps Script validates the signature using the same secret (or `wp_salt('auth')` if left empty).
+5. See `docs/gas-auth-bridge.md` for details.
 
 ## Troubleshooting
 
-| Síntoma | Causa probable | Solución |
-|---------|---------------|----------|
-| El iframe muestra un error | X-Frame-Options o CSP de Google | Usa target `new_tab` o configura CSP. |
-| No se ve el portal | Sin login o sin permisos | Revisa roles y redirección de login. |
-| Tailwind no aplica estilos | CDN no cargado / sin conexión | Verifica que `https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4` sea accesible. |
-| App no aparece en el menú | `enabled = false` o falta URL | Configura la URL en Ajustes > ARC Portal. |
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| The iframe shows an error | X-Frame-Options or Google CSP | Use target `new_tab` or configure CSP. |
+| The portal is not visible | Not logged in or no permissions | Check roles and login redirect. |
+| Tailwind styles are not applied | CDN not loaded / no connection | Verify that `https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4` is accessible. |
+| App does not appear in the menu | `enabled = false` or missing URL | Configure the URL in Settings > ARC Portal. |
 
 ## Changelog
 
 ### 1.0.0
-- Versión inicial del portal.
-- Registro de apps (`Arc_Portal_App_Registry`).
-- Dashboard de inicio con cards y accesos directos.
-- Sidebar colapsable y ruta virtual `/arc-portal/`.
-- Puente de autenticación GAS con tokens firmados.
-- Tailwind CSS v4 vía CDN.
+- Initial portal release.
+- App registry (`Arc_Portal_App_Registry`).
+- Home dashboard with cards and quick access.
+- Collapsible sidebar and virtual route `/arc-portal/`.
+- GAS authentication bridge with signed tokens.
+- Tailwind CSS v4 via CDN.
 
-## Próximos pasos
+## Next steps
 
-1. Ejecuta `node plantillas/update-arc-urls.js` para generar `arc-apps-config.json` con las URLs de despliegue.
-2. El plugin importará automáticamente el archivo al activarse. También puedes usar el botón **Importar URLs ahora** en **Ajustes > ARC Portal**.
-3. Probar el shortcode y la ruta `/arc-portal/`.
-4. `IPC Time Clock` ya tiene el parche aplicado: haz `clasp push` en `plantillas/IPC Time Clock` para desplegarlo.
-5. Aplicar los cambios de `docs/apps-integration.md` en `Arc EOD Report`, `Arc Human Resources` y `Arc Task App`.
-6. Implementar SSO real siguiendo `docs/gas-auth-bridge.md` si se desea unificar autenticación.
+1. Run `node plantillas/update-arc-urls.js` to generate `arc-apps-config.json` with the deployment URLs.
+2. The plugin will automatically import the file when activated. You can also use the **Import URLs now** button in **Settings > ARC Portal**.
+3. Test the shortcode and the `/arc-portal/` route.
+4. `IPC Time Clock` already has the patch applied: run `clasp push` in `plantillas/IPC Time Clock` to deploy it.
+5. Apply the changes from `docs/apps-integration.md` in `Arc EOD Report`, `Arc Human Resources` and `Arc Task App`.
+6. Implement real SSO following `docs/gas-auth-bridge.md` if you want unified authentication.

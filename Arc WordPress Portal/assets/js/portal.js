@@ -1,7 +1,7 @@
 /**
  * Ash River Collective — Integrated Portal front-end controller.
  *
- * Inspirado en panel-ui.js / panel-layout.js del plugin Intranet ARC.
+ * Inspired by panel-ui.js / panel-layout.js in the Intranet ARC plugin.
  */
 (function () {
 	'use strict';
@@ -43,7 +43,7 @@
 			if (frameWrap) frameWrap.classList.remove('hide');
 			if (frameError) frameError.classList.add('hide');
 			if (title) title.textContent = label || 'App';
-			if (status) status.textContent = 'Cargando...';
+			if (status) status.textContent = 'Loading...';
 
 			if (frame.src !== url) {
 				frame.src = url;
@@ -100,13 +100,13 @@
 		});
 
 		frame.addEventListener('load', function () {
-			if (status) status.textContent = 'Listo';
+			if (status) status.textContent = 'Ready';
 			if (frameError) frameError.classList.add('hide');
 		});
 
 		frame.addEventListener('error', function () {
-			if (status) status.textContent = 'Error al cargar';
-			showFrameError('Error de carga del iframe');
+			if (status) status.textContent = 'Load error';
+			showFrameError('Iframe load error');
 		});
 
 		function showFrameError(reason) {
@@ -120,11 +120,11 @@
 		// Use a timeout as fallback to detect a hung load.
 		let loadTimeout;
 		frame.addEventListener('loadstart', function () {
-			if (status) status.textContent = 'Cargando...';
+			if (status) status.textContent = 'Loading...';
 			clearTimeout(loadTimeout);
 			loadTimeout = setTimeout(function () {
-				if (status && status.textContent === 'Cargando...') {
-					showFrameError('La app no responde o no permite iframe (cross-origin).');
+				if (status && status.textContent === 'Loading...') {
+					showFrameError('The app is not responding or does not allow iframe (cross-origin).');
 				}
 			}, 20000);
 		});

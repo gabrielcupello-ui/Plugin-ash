@@ -2,8 +2,8 @@
 /**
  * Main class for the ARC API Frontend plugin.
  *
- * WordPress muestra los datos y envía datos a Google Apps Script / Sheets
- * a través de un proxy REST propio.
+ * WordPress displays data and sends data to Google Apps Script / Sheets
+ * through its own REST proxy.
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -19,7 +19,7 @@ class Arc_API_Frontend_App {
 		'allowed_roles'     => array( 'administrator', 'editor', 'subscriber' ),
 		'apps'              => array(
 			'time_clock' => array(
-				'label'     => 'Control Horario',
+				'label'     => 'Time Clock',
 				'endpoint'  => '',
 				'api_key'   => '',
 				'enabled'   => true,
@@ -31,7 +31,7 @@ class Arc_API_Frontend_App {
 				'enabled'   => true,
 			),
 			'hr'         => array(
-				'label'     => 'Recursos Humanos',
+				'label'     => 'Human Resources',
 				'endpoint'  => '',
 				'api_key'   => '',
 				'enabled'   => true,
@@ -99,14 +99,14 @@ class Arc_API_Frontend_App {
 				add_settings_error(
 					'arc_api_frontend_messages',
 					'arc_api_frontend_import',
-					$result ? __( 'Configuración importada correctamente.', 'arc-api-frontend' ) : __( 'No se pudo importar la configuración.', 'arc-api-frontend' ),
+					$result ? __( 'Configuration imported successfully.', 'arc-api-frontend' ) : __( 'Could not import the configuration.', 'arc-api-frontend' ),
 					$result ? 'success' : 'error'
 				);
 			} else {
 				add_settings_error(
 					'arc_api_frontend_messages',
 					'arc_api_frontend_import',
-					__( 'No se encontró arc-apps-config.json.', 'arc-api-frontend' ),
+					__( 'arc-apps-config.json was not found.', 'arc-api-frontend' ),
 					'error'
 				);
 			}
@@ -247,14 +247,14 @@ class Arc_API_Frontend_App {
 		if ( $configured === 0 ) {
 			echo '<div class="notice notice-warning is-dismissible"><p>';
 			echo '<strong>' . esc_html__( 'ARC API Frontend', 'arc-api-frontend' ) . ':</strong> ';
-			esc_html_e( 'Ningún endpoint está configurado. Ve a ', 'arc-api-frontend' );
-			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-api-frontend-setup' ) ) . '">' . esc_html__( 'Configuración rápida', 'arc-api-frontend' ) . '</a>';
+			esc_html_e( 'No endpoint is configured. Go to ', 'arc-api-frontend' );
+			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-api-frontend-setup' ) ) . '">' . esc_html__( 'Quick Setup', 'arc-api-frontend' ) . '</a>';
 			echo '</p></div>';
 		} elseif ( $configured < $total ) {
 			echo '<div class="notice notice-info is-dismissible"><p>';
 			echo '<strong>' . esc_html__( 'ARC API Frontend', 'arc-api-frontend' ) . ':</strong> ';
-			printf( esc_html__( 'Tienes %1$d de %2$d endpoints configurados. ', 'arc-api-frontend' ), absint( $configured ), absint( $total ) );
-			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-api-frontend-setup' ) ) . '">' . esc_html__( 'Revisar configuración', 'arc-api-frontend' ) . '</a>';
+			printf( esc_html__( 'You have %1$d of %2$d endpoints configured. ', 'arc-api-frontend' ), absint( $configured ), absint( $total ) );
+			echo '<a href="' . esc_url( admin_url( 'admin.php?page=arc-api-frontend-setup' ) ) . '">' . esc_html__( 'Review configuration', 'arc-api-frontend' ) . '</a>';
 			echo '</p></div>';
 		}
 	}
@@ -267,10 +267,10 @@ class Arc_API_Frontend_App {
 	 */
 	public function get_app_status( $url ) {
 		if ( empty( $url ) ) {
-			return array( 'text' => __( 'Sin configurar', 'arc-api-frontend' ), 'color' => 'red' );
+			return array( 'text' => __( 'Not configured', 'arc-api-frontend' ), 'color' => 'red' );
 		}
 		if ( false === wp_http_validate_url( $url ) ) {
-			return array( 'text' => __( 'URL inválida', 'arc-api-frontend' ), 'color' => 'orange' );
+			return array( 'text' => __( 'Invalid URL', 'arc-api-frontend' ), 'color' => 'orange' );
 		}
 		return array( 'text' => __( 'OK', 'arc-api-frontend' ), 'color' => 'green' );
 	}
@@ -325,9 +325,9 @@ class Arc_API_Frontend_App {
 		do_action( 'arc_api_frontend_render_' . $slug, $app, $atts );
 
 		if ( empty( $app['endpoint'] ) ) {
-			echo '<div class="arc-api-message show error">' . esc_html__( 'Endpoint no configurado.', 'arc-api-frontend' ) . '</div>';
+			echo '<div class="arc-api-message show error">' . esc_html__( 'Endpoint not configured.', 'arc-api-frontend' ) . '</div>';
 		} else {
-			echo '<p>' . esc_html__( 'Módulo cargado dinámicamente.', 'arc-api-frontend' ) . '</p>';
+			echo '<p>' . esc_html__( 'Module loaded dynamically.', 'arc-api-frontend' ) . '</p>';
 		}
 
 		echo '</div>';
@@ -411,7 +411,7 @@ class Arc_API_Frontend_App {
 	}
 
 	public function render_access_denied() {
-		return '<div class="max-w-md mx-auto my-10 p-8 bg-gray-100 rounded-2xl text-center"><p class="text-gray-700 mb-4">' . esc_html__( 'Debes iniciar sesión para acceder.', 'arc-api-frontend' ) . '</p><a class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition no-underline" href="' . esc_url( wp_login_url( get_permalink() ) ) . '">' . esc_html__( 'Iniciar sesión', 'arc-api-frontend' ) . '</a></div>';
+		return '<div class="max-w-md mx-auto my-10 p-8 bg-gray-100 rounded-2xl text-center"><p class="text-gray-700 mb-4">' . esc_html__( 'You must log in to access.', 'arc-api-frontend' ) . '</p><a class="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition no-underline" href="' . esc_url( wp_login_url( get_permalink() ) ) . '">' . esc_html__( 'Log in', 'arc-api-frontend' ) . '</a></div>';
 	}
 
 	public function render_time_clock( $atts ) {
@@ -492,8 +492,8 @@ class Arc_API_Frontend_App {
 
 		add_submenu_page(
 			'arc-api-frontend-setup',
-			__( 'Configuración rápida', 'arc-api-frontend' ),
-			__( 'Configuración rápida', 'arc-api-frontend' ),
+			__( 'Quick Setup', 'arc-api-frontend' ),
+			__( 'Quick Setup', 'arc-api-frontend' ),
 			'manage_options',
 			'arc-api-frontend-setup',
 			array( $this, 'render_setup_page' )
@@ -501,8 +501,8 @@ class Arc_API_Frontend_App {
 
 		add_submenu_page(
 			'arc-api-frontend-setup',
-			__( 'Ajustes avanzados', 'arc-api-frontend' ),
-			__( 'Ajustes avanzados', 'arc-api-frontend' ),
+			__( 'Advanced Settings', 'arc-api-frontend' ),
+			__( 'Advanced Settings', 'arc-api-frontend' ),
 			'manage_options',
 			'arc-api-frontend-advanced',
 			array( $this, 'render_settings_page' )
@@ -572,7 +572,7 @@ class Arc_API_Frontend_App {
 						<input type="url" name="<?php echo esc_attr( $this->option_key ); ?>[logo_url]" value="<?php echo esc_url( $settings['logo_url'] ); ?>" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
 					</div>
 					<div>
-						<label class="block text-sm font-semibold text-gray-700 mb-2"><?php esc_html_e( 'Roles permitidos', 'arc-api-frontend' ); ?></label>
+						<label class="block text-sm font-semibold text-gray-700 mb-2"><?php esc_html_e( 'Allowed Roles', 'arc-api-frontend' ); ?></label>
 						<div class="space-y-2">
 							<?php foreach ( $roles as $role_key => $role_label ) : ?>
 								<label class="flex items-center gap-2 text-sm text-gray-700">
@@ -583,16 +583,16 @@ class Arc_API_Frontend_App {
 						</div>
 					</div>
 					<div>
-						<h3 class="text-lg font-semibold text-gray-900 mb-3"><?php esc_html_e( 'Endpoints de Apps Script', 'arc-api-frontend' ); ?></h3>
+						<h3 class="text-lg font-semibold text-gray-900 mb-3"><?php esc_html_e( 'Apps Script Endpoints', 'arc-api-frontend' ); ?></h3>
 						<div class="overflow-x-auto border border-gray-200 rounded-2xl">
 							<table class="w-full text-left border-collapse">
 								<thead class="bg-gray-50 border-b border-gray-200">
 									<tr>
-										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Hab.', 'arc-api-frontend' ); ?></th>
+										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Enabled', 'arc-api-frontend' ); ?></th>
 										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'App', 'arc-api-frontend' ); ?></th>
 										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Endpoint URL (doPost/doGet)', 'arc-api-frontend' ); ?></th>
 										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'API Key', 'arc-api-frontend' ); ?></th>
-										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Estado', 'arc-api-frontend' ); ?></th>
+										<th class="px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Status', 'arc-api-frontend' ); ?></th>
 									</tr>
 								</thead>
 								<tbody class="text-sm text-gray-700 divide-y divide-gray-100">
@@ -614,32 +614,32 @@ class Arc_API_Frontend_App {
 								</tbody>
 							</table>
 						</div>
-						<p class="text-sm text-gray-400 mt-2"><?php esc_html_e( 'Cada endpoint debe exponer un doPost en Apps Script que valide la API Key. Ver docs/apps-script-api.md.', 'arc-api-frontend' ); ?></p>
+						<p class="text-sm text-gray-400 mt-2"><?php esc_html_e( 'Each endpoint must expose a doPost in Apps Script that validates the API Key. See docs/apps-script-api.md.', 'arc-api-frontend' ); ?></p>
 					</div>
 					<div>
-						<h3 class="text-lg font-semibold text-gray-900 mb-3"><?php esc_html_e( 'Google API (opcional)', 'arc-api-frontend' ); ?></h3>
+						<h3 class="text-lg font-semibold text-gray-900 mb-3"><?php esc_html_e( 'Google API (optional)', 'arc-api-frontend' ); ?></h3>
 						<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'API Key', 'arc-api-frontend' ); ?></label>
 						<input type="text" name="<?php echo esc_attr( $this->option_key ); ?>[google_api_key]" value="<?php echo esc_attr( $settings['google_api_key'] ); ?>" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-						<p class="text-sm text-gray-400 mt-1"><?php esc_html_e( 'Usar Google Sheets API directamente requiere Service Account. Recomendado proxy via Apps Script.', 'arc-api-frontend' ); ?></p>
+						<p class="text-sm text-gray-400 mt-1"><?php esc_html_e( 'Using Google Sheets API directly requires a Service Account. Proxy via Apps Script is recommended.', 'arc-api-frontend' ); ?></p>
 					</div>
 				</div>
-				<?php submit_button( __( 'Guardar cambios', 'arc-api-frontend' ), 'primary', 'submit', false, array( 'class' => 'px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
+				<?php submit_button( __( 'Save changes', 'arc-api-frontend' ), 'primary', 'submit', false, array( 'class' => 'px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
 			</form>
 
 			<form method="post" action="" class="max-w-6xl mt-10">
 				<?php wp_nonce_field( 'arc_api_frontend_import_config' ); ?>
-				<h2 class="text-xl font-bold text-gray-900 mb-2"><?php esc_html_e( 'Auto-configuración desde arc-apps-config.json', 'arc-api-frontend' ); ?></h2>
+				<h2 class="text-xl font-bold text-gray-900 mb-2"><?php esc_html_e( 'Auto-configuration from arc-apps-config.json', 'arc-api-frontend' ); ?></h2>
 				<p class="text-sm text-gray-500 mb-4">
-					<?php esc_html_e( 'Importa URLs de despliegue desde el archivo generado por update-arc-urls.js. El plugin busca arc-apps-config.json en su carpeta, en wp-content/uploads/ o junto a plantillas/.', 'arc-api-frontend' ); ?>
+					<?php esc_html_e( 'Import deployment URLs from the file generated by update-arc-urls.js. The plugin looks for arc-apps-config.json in its own folder, in wp-content/uploads/, or next to plantillas/.', 'arc-api-frontend' ); ?>
 				</p>
 				<?php
 				$config_path = $this->find_config_file();
 				if ( $config_path ) {
-					echo '<p class="text-sm text-emerald-600 mb-4">' . esc_html__( 'Archivo encontrado:', 'arc-api-frontend' ) . ' <code class="bg-gray-100 px-2 py-1 rounded text-xs">' . esc_html( $config_path ) . '</code></p>';
+					echo '<p class="text-sm text-emerald-600 mb-4">' . esc_html__( 'File found:', 'arc-api-frontend' ) . ' <code class="bg-gray-100 px-2 py-1 rounded text-xs">' . esc_html( $config_path ) . '</code></p>';
 				}
 				?>
 				<input type="hidden" name="arc_api_frontend_import_config" value="1">
-				<?php submit_button( __( 'Importar endpoints ahora', 'arc-api-frontend' ), 'secondary', 'arc_api_frontend_import_config_submit', false, array( 'class' => 'px-6 py-2.5 bg-slate-500 hover:bg-slate-600 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
+				<?php submit_button( __( 'Import endpoints now', 'arc-api-frontend' ), 'secondary', 'arc_api_frontend_import_config_submit', false, array( 'class' => 'px-6 py-2.5 bg-slate-500 hover:bg-slate-600 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
 			</form>
 		</div>
 		<?php
@@ -650,7 +650,7 @@ class Arc_API_Frontend_App {
 	 */
 	public function render_setup_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'No tienes permisos.', 'arc-api-frontend' ) );
+			wp_die( esc_html__( 'You do not have permission.', 'arc-api-frontend' ) );
 		}
 
 		$settings = $this->settings;
@@ -658,40 +658,40 @@ class Arc_API_Frontend_App {
 		if ( isset( $_POST['arc_api_frontend_import_config'] ) && check_admin_referer( 'arc_api_frontend_import_config' ) ) {
 			$path = $this->find_config_file();
 			if ( $path && $this->import_apps_config( $path ) ) {
-				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Endpoints importados correctamente.', 'arc-api-frontend' ) . '</p></div>';
+				echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Endpoints imported successfully.', 'arc-api-frontend' ) . '</p></div>';
 				$settings = $this->get_settings();
 			} else {
-				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'No se pudo importar. Asegúrate de haber ejecutado update-arc-urls.js.', 'arc-api-frontend' ) . '</p></div>';
+				echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Could not import. Make sure you ran update-arc-urls.js.', 'arc-api-frontend' ) . '</p></div>';
 			}
 		}
 
 		?>
 		<div class="wrap bg-white p-6 font-sans">
 			<h1 class="text-3xl font-bold text-gray-900 mb-2"><?php echo esc_html( get_admin_page_title() ); ?></h1>
-			<p class="text-gray-500 mb-6"><?php esc_html_e( 'Configura el frontend API en 3 pasos:', 'arc-api-frontend' ); ?></p>
+			<p class="text-gray-500 mb-6"><?php esc_html_e( 'Set up the API frontend in 3 steps:', 'arc-api-frontend' ); ?></p>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
 					<h2 class="text-xl font-bold mb-2">1. <?php esc_html_e( 'Importar endpoints', 'arc-api-frontend' ); ?></h2>
-					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Ejecuta update-arc-urls.js y luego importa el JSON.', 'arc-api-frontend' ); ?></p>
+					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Run update-arc-urls.js and then import the JSON.', 'arc-api-frontend' ); ?></p>
 					<?php
 					$config_path = $this->find_config_file();
 					if ( $config_path ) {
-						echo '<p class="text-sm text-emerald-600 mb-4"><span class="font-semibold">✓</span> ' . esc_html__( 'Config listo', 'arc-api-frontend' ) . '</p>';
+						echo '<p class="text-sm text-emerald-600 mb-4"><span class="font-semibold">✓</span> ' . esc_html__( 'Config ready', 'arc-api-frontend' ) . '</p>';
 					} else {
-						echo '<p class="text-sm text-amber-600 mb-4"><span class="font-semibold">⚠</span> ' . esc_html__( 'No se encontró arc-apps-config.json', 'arc-api-frontend' ) . '</p>';
+						echo '<p class="text-sm text-amber-600 mb-4"><span class="font-semibold">⚠</span> ' . esc_html__( 'arc-apps-config.json not found', 'arc-api-frontend' ) . '</p>';
 					}
 					?>
 					<form method="post" action="">
 						<?php wp_nonce_field( 'arc_api_frontend_import_config' ); ?>
 						<input type="hidden" name="arc_api_frontend_import_config" value="1">
-						<?php submit_button( __( 'Importar endpoints', 'arc-api-frontend' ), 'primary', 'arc_api_frontend_import_config_submit', false, array( 'class' => 'px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
+						<?php submit_button( __( 'Import endpoints', 'arc-api-frontend' ), 'primary', 'arc_api_frontend_import_config_submit', false, array( 'class' => 'px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition cursor-pointer' ) ); ?>
 					</form>
 				</div>
 
 				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-					<h2 class="text-xl font-bold mb-2">2. <?php esc_html_e( 'Verificar endpoints', 'arc-api-frontend' ); ?></h2>
-					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Revisa que cada app tenga URL y API Key.', 'arc-api-frontend' ); ?></p>
+					<h2 class="text-xl font-bold mb-2">2. <?php esc_html_e( 'Verify endpoints', 'arc-api-frontend' ); ?></h2>
+					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Check that each app has a URL and API Key.', 'arc-api-frontend' ); ?></p>
 					<ul class="space-y-2 text-sm text-gray-700 mb-4">
 					<?php foreach ( $this->get_endpoints() as $key => $app ) : ?>
 						<?php
@@ -704,12 +704,12 @@ class Arc_API_Frontend_App {
 						</li>
 					<?php endforeach; ?>
 					</ul>
-					<a class="inline-flex items-center px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition no-underline" href="<?php echo esc_url( admin_url( 'admin.php?page=arc-api-frontend-advanced' ) ); ?>"><?php esc_html_e( 'Editar ajustes avanzados', 'arc-api-frontend' ); ?></a>
+					<a class="inline-flex items-center px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition no-underline" href="<?php echo esc_url( admin_url( 'admin.php?page=arc-api-frontend-advanced' ) ); ?>"><?php esc_html_e( 'Edit advanced settings', 'arc-api-frontend' ); ?></a>
 				</div>
 
 				<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-					<h2 class="text-xl font-bold mb-2">3. <?php esc_html_e( 'Publicar páginas', 'arc-api-frontend' ); ?></h2>
-					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Copia los shortcodes en páginas de WordPress.', 'arc-api-frontend' ); ?></p>
+					<h2 class="text-xl font-bold mb-2">3. <?php esc_html_e( 'Publish pages', 'arc-api-frontend' ); ?></h2>
+					<p class="text-sm text-gray-500 mb-4"><?php esc_html_e( 'Copy the shortcodes into WordPress pages.', 'arc-api-frontend' ); ?></p>
 					<ul class="space-y-2 text-sm text-gray-700">
 						<li><code class="bg-gray-100 px-2 py-1 rounded text-xs">[arc_api_dashboard]</code></li>
 						<li><code class="bg-gray-100 px-2 py-1 rounded text-xs">[arc_api_time_clock]</code></li>

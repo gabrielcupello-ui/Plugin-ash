@@ -14,11 +14,11 @@ if ( ! isset( $app ) ) {
 ?>
 <div class="max-w-6xl mx-auto p-6 font-sans text-gray-900" id="arc-tasks">
 	<div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-		<h2 class="text-2xl font-bold mb-4"><?php esc_html_e( 'Mis Tareas', 'arc-api-frontend' ); ?></h2>
+		<h2 class="text-2xl font-bold mb-4"><?php esc_html_e( 'My Tasks', 'arc-api-frontend' ); ?></h2>
 		<div class="max-w-xs mb-4">
-			<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'Filtrar por estado', 'arc-api-frontend' ); ?></label>
+			<label class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'Filter by status', 'arc-api-frontend' ); ?></label>
 			<select id="arc-task-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-				<option value="all"><?php esc_html_e( 'Todas', 'arc-api-frontend' ); ?></option>
+				<option value="all"><?php esc_html_e( 'All', 'arc-api-frontend' ); ?></option>
 				<option value="To Do"><?php esc_html_e( 'To Do', 'arc-api-frontend' ); ?></option>
 				<option value="In Progress"><?php esc_html_e( 'In Progress', 'arc-api-frontend' ); ?></option>
 				<option value="Review"><?php esc_html_e( 'Review', 'arc-api-frontend' ); ?></option>
@@ -30,15 +30,15 @@ if ( ! isset( $app ) ) {
 			<table class="w-full border-collapse" id="arc-tasks-list">
 				<thead>
 					<tr class="bg-gray-50 border-b border-gray-200">
-						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Tarea', 'arc-api-frontend' ); ?></th>
-						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Proyecto', 'arc-api-frontend' ); ?></th>
-						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Estado', 'arc-api-frontend' ); ?></th>
-						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Prioridad', 'arc-api-frontend' ); ?></th>
+						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Task', 'arc-api-frontend' ); ?></th>
+						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Project', 'arc-api-frontend' ); ?></th>
+						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Status', 'arc-api-frontend' ); ?></th>
+						<th class="text-left px-4 py-3 text-sm font-semibold text-gray-600"><?php esc_html_e( 'Priority', 'arc-api-frontend' ); ?></th>
 					</tr>
 				</thead>
 				<tbody class="text-sm text-gray-700">
 					<tr>
-						<td colspan="4" class="text-center text-gray-400 py-8"><?php esc_html_e( 'Cargando tareas...', 'arc-api-frontend' ); ?></td>
+						<td colspan="4" class="text-center text-gray-400 py-8"><?php esc_html_e( 'Loading tasks...', 'arc-api-frontend' ); ?></td>
 					</tr>
 				</tbody>
 			</table>
@@ -46,6 +46,6 @@ if ( ! isset( $app ) ) {
 	</div>
 
 	<?php if ( empty( $app['endpoint'] ) ) : ?>
-		<div class="mt-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4"><?php esc_html_e( 'El endpoint de Task App no está configurado.', 'arc-api-frontend' ); ?></div>
+		<div class="mt-6 bg-red-50 border border-red-200 text-red-800 rounded-lg p-4"><?php esc_html_e( 'The Task App endpoint is not configured.', 'arc-api-frontend' ); ?></div>
 	<?php endif; ?>
 </div>

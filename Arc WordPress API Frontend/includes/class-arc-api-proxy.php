@@ -2,9 +2,9 @@
 /**
  * REST proxy between WordPress frontend and Google Apps Script endpoints.
  *
- * Todos los shortcodes del frontend llaman a /wp-json/arc-api-frontend/v1/{app}/{action}
- * y este proxy reenvía la petición a la URL de Apps Script configurada,
- * añadiendo la API Key y el email del usuario actual.
+ * All front-end shortcodes call /wp-json/arc-api-frontend/v1/{app}/{action}
+ * and this proxy forwards the request to the configured Apps Script URL,
+ * adding the API Key and the current user's email.
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -54,7 +54,7 @@ class Arc_API_Frontend_Proxy {
 
 	public function permission_check( $request ) {
 		if ( ! is_user_logged_in() ) {
-			return new WP_Error( 'not_logged_in', __( 'Debes iniciar sesión.', 'arc-api-frontend' ), array( 'status' => 401 ) );
+			return new WP_Error( 'not_logged_in', __( 'You must log in.', 'arc-api-frontend' ), array( 'status' => 401 ) );
 		}
 
 		$settings = Arc_API_Frontend_App::instance()->get_settings();
@@ -66,7 +66,7 @@ class Arc_API_Frontend_Proxy {
 
 		$allowed = array_map( 'sanitize_key', (array) $settings['allowed_roles'] );
 		if ( ! (bool) array_intersect( (array) $user->roles, $allowed ) ) {
-			return new WP_Error( 'forbidden', __( 'No tienes permisos.', 'arc-api-frontend' ), array( 'status' => 403 ) );
+			return new WP_Error( 'forbidden', __( 'You do not have permission.', 'arc-api-frontend' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -80,7 +80,7 @@ class Arc_API_Frontend_Proxy {
 		$method = $request->get_method();
 
 		if ( empty( $app ) || empty( $action ) ) {
-			return new WP_Error( 'invalid_request', __( 'Petición inválida.', 'arc-api-frontend' ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_request', __( 'Invalid request.', 'arc-api-frontend' ), array( 'status' => 400 ) );
 		}
 
 		$settings  = Arc_API_Frontend_App::instance()->get_settings();
@@ -88,15 +88,15 @@ class Arc_API_Frontend_Proxy {
 		$app_config = $registry->get_endpoint( $app, $settings['apps'] );
 
 		if ( ! $app_config ) {
-			return new WP_Error( 'not_registered', __( 'App no registrada.', 'arc-api-frontend' ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_registered', __( 'App not registered.', 'arc-api-frontend' ), array( 'status' => 404 ) );
 		}
 
 		if ( empty( $app_config['endpoint'] ) ) {
-			return new WP_Error( 'not_configured', __( 'Endpoint no configurado.', 'arc-api-frontend' ), array( 'status' => 500 ) );
+			return new WP_Error( 'not_configured', __( 'Endpoint not configured.', 'arc-api-frontend' ), array( 'status' => 500 ) );
 		}
 
 		if ( ! $registry->is_action_allowed( $app, $action, $settings['apps'] ) ) {
-			return new WP_Error( 'action_not_allowed', __( 'Acción no permitida para esta app.', 'arc-api-frontend' ), array( 'status' => 403 ) );
+			return new WP_Error( 'action_not_allowed', __( 'Action not allowed for this app.', 'arc-api-frontend' ), array( 'status' => 403 ) );
 		}
 
 		$endpoint = $app_config['endpoint'];
@@ -174,7 +174,7 @@ class Arc_API_Frontend_Proxy {
 
 		if ( $code < 200 || $code >= 300 ) {
 			$this->log_error( $app, $action, 'HTTP ' . $code . ': ' . $body );
-			return new WP_Error( 'upstream_error', __( 'La app de Apps Script respondió con error.', 'arc-api-frontend' ), array( 'status' => $code, 'body' => $body ) );
+			return new WP_Error( 'upstream_error', __( 'The Apps Script app responded with an error.', 'arc-api-frontend' ), array( 'status' => $code, 'body' => $body ) );
 		}
 
 		$result = is_array( $decoded ) ? $decoded : array( 'raw' => $body );

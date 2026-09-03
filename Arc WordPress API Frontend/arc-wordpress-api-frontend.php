@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ash River Collective — API Frontend
  * Plugin URI:  https://ashrivercollective.com
- * Description: WordPress como frontend nativo que consume y envía datos a las apps de Google Apps Script vía APIs REST.
+ * Description: WordPress as a native frontend that consumes and sends data to Google Apps Script apps via REST APIs.
  * Version:     1.1.0
  * Author:      ARC Automation Team
  * License:     GPL-2.0-or-later

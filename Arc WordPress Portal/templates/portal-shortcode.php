@@ -11,7 +11,7 @@ $settings     = $this->get_settings();
 $user         = wp_get_current_user();
 $logo_url     = $settings['logo_url'];
 $portal_title = ! empty( $settings['portal_title'] ) ? $settings['portal_title'] : get_bloginfo( 'name' );
-$home_title   = ! empty( $settings['home_title'] ) ? $settings['home_title'] : __( 'Bienvenido', 'arc-portal' );
+$home_title   = ! empty( $settings['home_title'] ) ? $settings['home_title'] : __( 'Welcome', 'arc-portal' );
 $home_desc    = ! empty( $settings['home_description'] ) ? $settings['home_description'] : '';
 $help_email   = ! empty( $settings['help_email'] ) ? $settings['help_email'] : 'soporte@ashrivercollective.com';
 $logout_url   = ! empty( $settings['logout_url'] ) ? $settings['logout_url'] : wp_logout_url( home_url() );
@@ -60,7 +60,7 @@ foreach ( $apps as $key => $app ) {
 }
 ?>
 <div id="arc-portal" class="arc-portal flex w-full min-h-[90vh] bg-slate-900 text-slate-100 rounded-none overflow-hidden font-sans">
-	<aside class="arc-portal-sidebar w-64 flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col transition-all duration-300 ease-in-out" aria-label="<?php esc_attr_e( 'Menú del portal', 'arc-portal' ); ?>">
+	<aside class="arc-portal-sidebar w-64 flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col transition-all duration-300 ease-in-out" aria-label="<?php esc_attr_e( 'Portal menu', 'arc-portal' ); ?>">
 		<div class="arc-portal-brand p-5 border-b border-slate-700 text-left whitespace-nowrap overflow-hidden">
 			<?php if ( $logo_url ) : ?>
 				<img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $portal_title ); ?>" class="max-w-full h-auto max-h-12 align-middle">
@@ -77,7 +77,7 @@ foreach ( $apps as $key => $app ) {
 				data-title="<?php echo esc_attr( $home_title ); ?>"
 			>
 				<?php echo $arc_icon_for( 'home' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed local SVG map. ?>
-				<span class="arc-portal-label"><?php esc_html_e( 'Inicio', 'arc-portal' ); ?></span>
+				<span class="arc-portal-label"><?php esc_html_e( 'Home', 'arc-portal' ); ?></span>
 			</button>
 			<?php foreach ( $apps as $key => $app ) : ?>
 				<?php
@@ -119,7 +119,7 @@ foreach ( $apps as $key => $app ) {
 		<div class="arc-portal-sidebar-footer p-4 border-t border-slate-700 text-sm text-slate-400">
 			<span class="block mb-2 font-medium text-slate-100"><?php echo esc_html( $user->display_name ); ?></span>
 			<a class="text-red-400 hover:underline" href="<?php echo esc_url( $logout_url ); ?>">
-				<?php esc_html_e( 'Cerrar sesión', 'arc-portal' ); ?>
+				<?php esc_html_e( 'Log out', 'arc-portal' ); ?>
 			</a>
 		</div>
 	</aside>
@@ -127,13 +127,13 @@ foreach ( $apps as $key => $app ) {
 	<main class="arc-portal-main flex-1 flex flex-col min-w-0 bg-slate-900">
 		<header class="arc-portal-header flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-800">
 			<div class="arc-portal-header-left flex items-center gap-4">
-				<button type="button" id="arc-portal-toggle" class="bg-transparent border-none text-slate-100 text-2xl cursor-pointer px-2 py-1 rounded-md hover:bg-slate-700 leading-none" aria-label="<?php esc_attr_e( 'Mostrar/ocultar menú', 'arc-portal' ); ?>">
+				<button type="button" id="arc-portal-toggle" class="bg-transparent border-none text-slate-100 text-2xl cursor-pointer px-2 py-1 rounded-md hover:bg-slate-700 leading-none" aria-label="<?php esc_attr_e( 'Show/hide menu', 'arc-portal' ); ?>">
 					☰
 				</button>
 				<h2 id="arc-portal-title" class="arc-portal-title m-0 text-lg font-semibold text-white"><?php echo esc_html( $home_title ); ?></h2>
 			</div>
 			<div class="arc-portal-header-right flex items-center gap-4">
-				<a class="text-slate-400 p-1.5 rounded-md transition hover:bg-slate-700 hover:text-white" href="mailto:<?php echo esc_attr( $help_email ); ?>" title="<?php esc_attr_e( 'Ayuda', 'arc-portal' ); ?>" aria-label="<?php esc_attr_e( 'Ayuda', 'arc-portal' ); ?>">
+				<a class="text-slate-400 p-1.5 rounded-md transition hover:bg-slate-700 hover:text-white" href="mailto:<?php echo esc_attr( $help_email ); ?>" title="<?php esc_attr_e( 'Help', 'arc-portal' ); ?>" aria-label="<?php esc_attr_e( 'Help', 'arc-portal' ); ?>">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
 				</a>
 				<div class="flex items-center gap-2 text-slate-100 text-sm font-medium" title="<?php echo esc_attr( $user->user_email ); ?>">
@@ -141,7 +141,7 @@ foreach ( $apps as $key => $app ) {
 					<span class="arc-portal-header-user-name"><?php echo esc_html( $user->display_name ); ?></span>
 				</div>
 				<a class="text-slate-400 text-sm hover:text-red-400 hover:underline" href="<?php echo esc_url( $logout_url ); ?>">
-					<?php esc_html_e( 'Salir', 'arc-portal' ); ?>
+					<?php esc_html_e( 'Log out', 'arc-portal' ); ?>
 				</a>
 			</div>
 		</header>
@@ -166,7 +166,7 @@ foreach ( $apps as $key => $app ) {
 							<?php if ( ! empty( $app['description'] ) ) : ?>
 								<p class="m-0 text-sm text-slate-400"><?php echo esc_html( $app['description'] ); ?></p>
 							<?php else : ?>
-								<p class="m-0 text-sm text-slate-400"><?php esc_html_e( 'Abrir aplicación', 'arc-portal' ); ?></p>
+								<p class="m-0 text-sm text-slate-400"><?php esc_html_e( 'Open app', 'arc-portal' ); ?></p>
 							<?php endif; ?>
 						<?php if ( 'new_tab' === $app['target'] ) : ?>
 							</a>
@@ -188,9 +188,9 @@ foreach ( $apps as $key => $app ) {
 					data-allow="camera; microphone; geolocation"
 				></iframe>
 				<div id="arc-portal-frame-error" class="arc-portal-frame-error hide absolute inset-0 bg-slate-900 flex flex-col items-center justify-center p-10 text-center z-10">
-					<p class="mb-3 text-white"><?php esc_html_e( 'No se pudo cargar la app dentro del portal.', 'arc-portal' ); ?></p>
+					<p class="mb-3 text-white"><?php esc_html_e( 'The app could not be loaded inside the portal.', 'arc-portal' ); ?></p>
 					<p class="arc-portal-frame-error-reason text-slate-400 text-sm mb-6"></p>
-					<a id="arc-portal-frame-error-link" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold no-underline" href="#" target="_blank" rel="noopener"><?php esc_html_e( 'Abrir en nueva pestaña', 'arc-portal' ); ?></a>
+					<a id="arc-portal-frame-error-link" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold no-underline" href="#" target="_blank" rel="noopener"><?php esc_html_e( 'Open in new tab', 'arc-portal' ); ?></a>
 				</div>
 			</div>
 		</div>

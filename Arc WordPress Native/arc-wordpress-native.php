@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Ash River Collective — WordPress Native Core
  * Plugin URI:  https://ashrivercollective.com
- * Description: Opción 3: núcleo nativo de WordPress para Time Clock, EOD, RRHH y Task App,
- *              con conectores a Google Apps Script / Sheets para sincronización gradual.
+ * Description: Option 3: native WordPress core for Time Clock, EOD, HR, and Task App,
+ *              with connectors to Google Apps Script / Sheets for gradual synchronization.
  * Version:     1.0.0
  * Author:      ARC Automation Team
  * License:     GPL-2.0-or-later

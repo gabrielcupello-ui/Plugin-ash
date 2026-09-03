@@ -9,17 +9,17 @@ Stable tag:        1.1.0
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 
-Frontend nativo de WordPress que consume y envía datos a Google Apps Script.
+Native WordPress frontend that consumes and sends data to Google Apps Script.
 
 == Description ==
 
-**Ash River Collective — API Frontend** implementa la Opción 2 de integración: WordPress como frontend, Google Apps Script / Sheets como backend.
+**Ash River Collective — API Frontend** implements integration Option 2: WordPress as the frontend, Google Apps Script / Sheets as the backend.
 
-* Shortcodes nativos: `[arc_api_dashboard]`, `[arc_api_time_clock]`, `[arc_api_eod_form]`, `[arc_api_tasks]`.
-* Proxy REST interno hacia Apps Script.
-* Autenticación por nonce y API Key por app.
-* Caché de lecturas e invalidación automática en escrituras.
-* Tokens firmados opcionales para SSO.
+* Native shortcodes: `[arc_api_dashboard]`, `[arc_api_time_clock]`, `[arc_api_eod_form]`, `[arc_api_tasks]`.
+* Internal REST proxy to Apps Script.
+* Nonce authentication and per-app API Key.
+* Read cache and automatic invalidation on writes.
+* Optional signed tokens for SSO.
 
 == Installation ==
 

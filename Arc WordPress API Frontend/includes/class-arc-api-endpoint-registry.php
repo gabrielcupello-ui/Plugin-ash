@@ -57,7 +57,7 @@ class Arc_API_Frontend_Endpoint_Registry {
 	private function __construct() {
 		$this->defaults = array(
 			'time_clock' => array(
-				'label'    => __( 'Control Horario', 'arc-api-frontend' ),
+				'label'    => __( 'Time Clock', 'arc-api-frontend' ),
 				'endpoint' => '',
 				'api_key'  => '',
 				'enabled'  => true,
@@ -75,7 +75,7 @@ class Arc_API_Frontend_Endpoint_Registry {
 				'order'    => 20,
 			),
 			'hr'         => array(
-				'label'    => __( 'Recursos Humanos', 'arc-api-frontend' ),
+				'label'    => __( 'Human Resources', 'arc-api-frontend' ),
 				'endpoint' => '',
 				'api_key'  => '',
 				'enabled'  => true,

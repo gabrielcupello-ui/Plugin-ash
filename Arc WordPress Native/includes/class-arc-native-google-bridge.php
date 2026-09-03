@@ -257,7 +257,7 @@ class Arc_Native_Google_Bridge {
 function arc_native_cron_intervals( $schedules ) {
 	$schedules['five_minutes'] = array(
 		'interval' => 300,
-		'display'  => __( 'Cada 5 minutos', 'arc-native' ),
+		'display'  => __( 'Every 5 minutes', 'arc-native' ),
 	);
 	return $schedules;
 }
