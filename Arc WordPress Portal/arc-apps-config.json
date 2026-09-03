@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "updated": "",
+  "apps": {
+    "time_clock": {
+      "name": "IPC Time Clock",
+      "path": "IPC Time Clock",
+      "scriptId": "1xOkS_mpVuLhfywOrYD-Ta295-s7-Q5peaT3FHia5bGPlkl99OUDhWTyH",
+      "endpoint": "",
+      "portal_target": "iframe",
+      "portal_icon": "clock"
+    },
+    "eod_report": {
+      "name": "Arc EOD Report",
+      "path": "Arc EOD Report",
+      "scriptId": "1KcFKXrDHg3fPaHUv3x4ID8kTKLVmIDlclbqh_8XR6JlW7arI2rPwORHK",
+      "endpoint": "",
+      "portal_target": "iframe",
+      "portal_icon": "file-text"
+    },
+    "hr": {
+      "name": "Arc Human Resources",
+      "path": "Arc Human Resources",
+      "scriptId": "1JVhVILJZX2dNjb_gbIP9Bps_9CiyxwiwgKLbhFIRaQfDwcjW5-XoJkGl",
+      "endpoint": "",
+      "portal_target": "iframe",
+      "portal_icon": "users"
+    },
+    "task_app": {
+      "name": "Arc Task App",
+      "path": "Arc Task App",
+      "scriptId": "1DhAax-qio4VFMkWTtppQBw_dJvZ-3aGqvS6oqPX-6gViYyisRdJHqlid",
+      "endpoint": "",
+      "portal_target": "new_tab",
+      "portal_icon": "check-square"
+    }
+  }
+}
